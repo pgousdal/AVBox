@@ -168,3 +168,18 @@ handled before broader historical documentation mirroring.
 - Detailed platform surveys, current-engine qualification, wanted identities,
   and the future open-source RAB timeline are in `preserve-before-m0.md` and
   `rab-future-acquisition.yaml`.
+
+## DOS + OS/2 deep-pass update — 2026-08-20
+
+- **PRESERVED / EMERGENCY:** official McAfee VirusScan Command Line 4.3.20
+  (`cmz4320l.zip`), engine 4320, bundled DAT 4307; its primary README explicitly
+  supports DOS 6.22 and requires DAT 4297 or later. The adjacent engine SuperDAT,
+  guide, readmes, and mutable directory snapshot are also preserved.
+- **ARTIFACT_WANTED:** McAfee VirusScan for OS/2 4.0.2 build 4009 with DAT 4009,
+  and 4.0.4. Current DAT/XDAT 11880 compatibility remains unverified; DAT 4009
+  is the newest exact OS/2 pair established by evidence in this pass.
+- **DEAD_SOURCE:** IBM's official `ibmav` directory is empty except for a notice;
+  the referenced `av.ibm.com` signature service now redirects to IBM's generic
+  home page. The master index and notice are preserved.
+- Exact results, evidence tiers, fingerprints, and future-source leads are in
+  `dos-os2-deep-pass.md` and `rab-future-acquisition.yaml`.

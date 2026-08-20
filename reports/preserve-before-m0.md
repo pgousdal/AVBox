@@ -209,3 +209,13 @@ versions, platform/architecture/compatibility, risks, relationships,
 provenance, and rights. Identical RAB bytes can retain AVBox events as additional
 provenance. `verify-rab-export` validates exported bytes and required metadata.
 The preservation volume remains separate from the disposable OS disk.
+
+## DOS + OS/2 deep-pass update — 2026-08-20
+
+The official Trellix engine-4320 directory yielded and the store immediately
+preserved VirusScan Command Line 4.3.20 for DOS 6.22, bundled DAT 4307, engine
+4320, its engine-only SuperDAT and primary documentation. IBM's live master
+index and retired antivirus-directory evidence were preserved. No current DAT
+was claimed compatible with OS/2; the newest evidence-bound OS/2 pair remains
+VirusScan 4.0.2 build 4009 with DAT 4009. See `dos-os2-deep-pass.md` for the
+native-OS/2 census, uncertainty classifications and complete wanted list.
