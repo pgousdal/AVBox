@@ -9,3 +9,8 @@ M1's `ScanService` selects only applicable file adapters. `SystemDetectorAdapter
 Operational versions, probe status, definition state, and scan results are runtime data. Product identity, declared capabilities, installation provenance, and qualification intent remain Git-versioned YAML. Existing bootstrap-rescue tooling remains an external preservation producer, not an AVBox scanner or dependency.
 
 M1.1 adds a generic protocol boundary: streamed intake and authentication in the API plane, versioned YAML analysis profiles, the existing persisted `ScanJob`, a bounded local worker queue, and semantic result mapping. It does not duplicate the job state machine or move profile/catalog truth into SQLite.
+
+M1.2 activates generic analyzers on that same job. Exact identity and bounded
+filename metadata are deterministic in-process analyzers; file identification
+is an isolated external analyzer. Their typed `AnalyzerResult` values coexist
+with scanner results without requiring or manufacturing a security verdict.

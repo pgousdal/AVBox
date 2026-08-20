@@ -52,3 +52,27 @@ Errors contain `protocol_version`, stable `code`, and human-readable `detail`. C
 ## Versioning and schemas
 
 OpenAPI is available at `/openapi.json`. Core Pydantic schema snapshots are tested. Material profile changes require a new version, such as `security-default@2`; existing `@1` behavior remains reproducible. A future protocol v2 uses a new namespace/contract without changing v1.
+
+## M1.2 identification profile example
+
+`identification-default@1` contains `identity`, `basic-metadata`, and
+`file-type`. `security-default@1` remains unchanged. A representative result is:
+
+```json
+{
+  "profile": "identification-default@1",
+  "object": {"filename": "invoice.pdf.exe", "sha256": "…", "size": 128},
+  "observations": [
+    {"observation_type": "filename.extensions", "value": ["pdf", "exe"], "analyzer_id": "basic-metadata"},
+    {"observation_type": "file.mime.type", "value": "application/vnd.microsoft.portable-executable", "analyzer_id": "file-type"}
+  ],
+  "assessments": [
+    {"assessment_type": "FILE_TYPE", "statement": "family=executable; format=PE", "confidence": "HIGH", "analyzer_id": "file-type"},
+    {"assessment_type": "MULTIPLE_EXTENSION", "statement": "filename has multiple non-compound suffix components", "confidence": "HIGH", "analyzer_id": "basic-metadata"}
+  ],
+  "verdict": null
+}
+```
+
+The schema can retain conflicting extension, declared-MIME, and libmagic
+evidence. None of those disagreements independently creates a security verdict.

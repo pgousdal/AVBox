@@ -11,3 +11,9 @@ File scanners run through bubblewrap when available with a read-only host view, 
 The main service removes capabilities, enables `NoNewPrivileges`, protects system/home/kernel/control groups, uses private devices/tmp, sets task/memory/core limits, and grants writes only to `/var/lib/avbox`. Scanner updates run separately and may use network access; ordinary bubblewrap scans do not.
 
 RAB upload authentication is independent of network locality. Tokens are externally stored and constant-time compared. Uploads are bounded and streamed to generated paths; caller filenames, URLs, URIs, and paths cannot select host resources. Authentication failures, forbidden scopes, hash mismatches, queue rejection, and job outcomes are audited without credentials or request headers.
+
+M1.2 preserves caller filenames only as bounded untrusted metadata. Filesystem
+access always uses generated paths. Debian `file`/libmagic runs through the
+read-only, no-network bubblewrap boundary and bounded process limits. Its magic
+database is available only through the existing read-only system view; M1.2
+adds no writable system path or network exception.
