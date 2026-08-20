@@ -19,6 +19,15 @@ runtime:
   maximum_file_bytes: 1073741824
   use_bubblewrap: true
   default_file_detectors: [clamav, yara, yara-x, loki, maldet]
+  max_recursion_depth: 3
+  max_children_per_object: 100
+  max_total_children: 1000
+  max_single_child_bytes: 67108864
+  max_total_extracted_bytes: 536870912
+  max_expansion_ratio: 100.0
+  max_member_name_bytes: 4096
+  max_path_depth: 32
+  max_extraction_time_seconds: 300
 api:
   host: {{ avbox_api_host }}
   port: {{ avbox_api_port }}

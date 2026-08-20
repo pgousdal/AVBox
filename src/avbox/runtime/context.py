@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from avbox.analyzers import GenericAnalyzer, build_generic_analyzers
+from avbox.analyzers.containers import ContainerAnalyzer
 from avbox.application import JobService, ScanService
 from avbox.config import AppSettings
 from avbox.preservation import PreservationService
@@ -42,6 +43,7 @@ def build_context(config_path: Path | None = None) -> Context:
         quarantine=PreservationService(settings.paths.quarantine),
         maximum_file_bytes=settings.runtime.maximum_file_bytes,
     )
+    scans.recursive_analyzer = ContainerAnalyzer(settings, scans)
     rab_protocol = RABService(
         settings=settings.rab_protocol,
         jobs=jobs,

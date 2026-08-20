@@ -140,6 +140,7 @@ class RABService:
         return list(self.profile_map.values())
 
     def capabilities(self) -> dict[str, object]:
+        recursive = getattr(self.scans, "recursive_analyzer", None)
         installed = self.jobs.scanner_statuses()
         qualified = sorted(
             name
@@ -166,8 +167,14 @@ class RABService:
             "submission_modes": ["byte-upload", "external-reference-metadata-only"],
             "reference_resolution": "NOT_IMPLEMENTED",
             "rab_correlation": "NOT_AVAILABLE",
-            "recursive_analysis": "NOT_AVAILABLE",
+            "recursive_analysis": "QUALIFIED" if recursive is not None else "NOT_AVAILABLE",
+            "container_analysis": {
+                "state": "QUALIFIED" if recursive is not None else "UNAVAILABLE",
+                "formats": ["zip", "tar", "gzip", "bzip2", "xz"],
+                "budgets": recursive.budget.model_dump(mode="json") if recursive else None,
+            },
             "queue_capacity": self.settings.queue_capacity,
+            "child_object_graph": recursive is not None,
         }
 
     def submit_stream(
@@ -390,6 +397,11 @@ class RABService:
             findings=findings,
             assessments=assessments,
             verdict=job.normalized_verdict if job.scanner_results else None,
+            derived_objects=job.derived_objects,
+            relationships=job.relationships,
+            completeness=job.completeness,
+            extraction_budget=job.extraction_budget,
+            extraction_usage=job.extraction_usage,
             preservation_context=PreservationContext(
                 provenance={
                     "client_id": record["client_id"],
@@ -402,10 +414,13 @@ class RABService:
                 "requested_by": record["client_id"],
                 "verified_sha256": artifact.hashes.sha256,
                 "scan_policy": job.scan_policy,
+                "root_verdict": job.root_verdict,
             },
         )
 
     def _analyzer_available(self, analyzer_id: str, runtime: Mapping[str, object]) -> bool:
+        if analyzer_id == "container":
+            return self.scans.recursive_analyzer is not None
         generic = self.scans.generic_analyzers.get(analyzer_id)
         if generic is not None:
             probe = generic.probe()

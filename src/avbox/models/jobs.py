@@ -6,7 +6,13 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
-from .analysis import AnalyzerResult
+from .analysis import (
+    AnalyzerResult,
+    DerivedObject,
+    ExtractionBudget,
+    ExtractionUsage,
+    ObjectRelationship,
+)
 from .artifacts import InputArtifact
 from .common import FindingKind, HistoricalMode, QualificationState, ScanPolicy, Verdict
 
@@ -64,6 +70,12 @@ class ScanJob(BaseModel):
     status: JobStatus = JobStatus.CREATED
     scanner_results: list[ScannerResult] = Field(default_factory=list)
     analyzer_results: list[AnalyzerResult] = Field(default_factory=list)
+    derived_objects: list[DerivedObject] = Field(default_factory=list)
+    relationships: list[ObjectRelationship] = Field(default_factory=list)
+    extraction_budget: ExtractionBudget | None = None
+    extraction_usage: ExtractionUsage | None = None
+    completeness: str = "COMPLETE"
+    root_verdict: Verdict | None = None
     normalized_verdict: Verdict = Verdict.NOT_SCANNED
     raw_output_refs: list[str] = Field(default_factory=list)
     preservation_decision: str | None = None

@@ -47,6 +47,15 @@ class RuntimeSettings(BaseModel):
     metadata_max_fields: int = Field(ge=1, le=10000, default=256)
     metadata_max_value_length: int = Field(ge=32, le=1_000_000, default=4096)
     metadata_max_total_chars: int = Field(ge=128, le=10_000_000, default=200_000)
+    max_recursion_depth: int = Field(ge=0, le=32, default=3)
+    max_children_per_object: int = Field(ge=1, le=10000, default=100)
+    max_total_children: int = Field(ge=1, le=100000, default=1000)
+    max_single_child_bytes: int = Field(ge=1, default=64 * 1024 * 1024)
+    max_total_extracted_bytes: int = Field(ge=1, default=512 * 1024 * 1024)
+    max_expansion_ratio: float = Field(ge=1.0, le=1_000_000.0, default=100.0)
+    max_member_name_bytes: int = Field(ge=1, le=65536, default=4096)
+    max_path_depth: int = Field(ge=1, le=256, default=32)
+    max_extraction_time_seconds: int = Field(ge=1, default=300)
 
 
 class APISettings(BaseModel):

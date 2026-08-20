@@ -49,10 +49,38 @@ class ObjectRelationship(BaseModel):
         "REPAIRED_FROM",
         "SIMILAR_TO",
         "DUPLICATE_OF",
+        "MEMBER_OF",
+        "DECOMPRESSED_FROM",
     ]
     source_sha256: str
     target_sha256: str
     evidence_refs: list[str] = Field(default_factory=list)
+    member_name: str | None = None
+    normalized_member_name: str | None = None
+    analyzer_id: str | None = None
+    extracted_at: datetime | None = None
+    depth: int = 0
+    member_index: int | None = None
+
+
+class ExtractionBudget(BaseModel):
+    max_recursion_depth: int
+    max_children_per_object: int
+    max_total_children: int
+    max_single_child_bytes: int
+    max_total_extracted_bytes: int
+    max_expansion_ratio: float
+    max_member_name_bytes: int
+    max_path_depth: int
+    max_extraction_time_seconds: int
+
+
+class ExtractionUsage(BaseModel):
+    children_discovered: int = 0
+    children_materialized: int = 0
+    total_extracted_bytes: int = 0
+    max_depth_reached: int = 0
+    limit_events: list[str] = Field(default_factory=list)
 
 
 class RawOutputDescriptor(BaseModel):
@@ -82,4 +110,18 @@ class AnalyzerResult(BaseModel):
     findings: list[Finding] = Field(default_factory=list)
     assessments: list[Assessment] = Field(default_factory=list)
     raw_output: RawOutputDescriptor | None = None
+    errors: list[str] = Field(default_factory=list)
+
+
+class DerivedObject(BaseModel):
+    object: Any
+    parent_sha256: str
+    depth: int
+    member_name: str | None = None
+    normalized_member_name: str | None = None
+    member_index: int | None = None
+    extraction_status: str
+    analyzer_results: list[AnalyzerResult] = Field(default_factory=list)
+    scanner_results: list[Any] = Field(default_factory=list)
+    normalized_verdict: Verdict = Verdict.NOT_SCANNED
     errors: list[str] = Field(default_factory=list)

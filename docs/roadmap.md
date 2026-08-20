@@ -5,9 +5,11 @@
 - **M1.1:** RAB Protocol v1 and generic asynchronous analysis-job foundation.
 - **M1.2:** exact identity, safe filename/extension metadata, and bounded libmagic file-type evidence.
 - **M1.3:** generic static characteristics: bounded strings, Shannon entropy/byte statistics, isolated ExifTool metadata, and ssdeep similarity groundwork (TLSH deferred pending trusted Debian packaging).
-- **M1.4:** container and recursive analysis.
-- **M1.5:** executable analysis.
-- **M1.6:** document analysis.
+- **M1.4:** bounded userspace container and recursive object analysis (ZIP/tar/gzip/bzip2/xz).
+- **M1.4a:** LHA/LZX and safe userspace ISO/container extensions.
+- **M1.4b:** selected disk-image child enumeration.
+- **M1.5:** executable analysis (PE/ELF/Mach-O and historical structures).
+- **M1.6:** document analysis (PDF/OLE/OOXML/RTF and embedded structures).
 - **M1.7:** retro/media validators.
 - **M2:** Windows worker: Defender and ClamAV first; qualify Avast/AVG/Avira/Bitdefender Free and commercial ESET/Dr.Web later.
 - **M3:** safe submission and durable reports.

@@ -15,3 +15,8 @@ profiles:
     analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, generic-metadata, similarity]
     capabilities: [object_identity, static_characteristics, similarity_fingerprint]
     enabled: true
+  - id: recursive-default
+    version: 1
+    analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, generic-metadata, similarity, clamav, yara, container]
+    capabilities: [object_identity, static_characteristics, security_detection, container_discovery, recursive_analysis]
+    enabled: true

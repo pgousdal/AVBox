@@ -10,6 +10,9 @@ from pydantic import BaseModel, Field
 from .analysis import (
     AnalyzerResult,
     Assessment,
+    DerivedObject,
+    ExtractionBudget,
+    ExtractionUsage,
     Finding,
     ObjectRelationship,
     Observation,
@@ -105,5 +108,9 @@ class AnalysisResultEnvelope(BaseModel):
     verdict: Verdict | None = None
     preservation_context: PreservationContext = Field(default_factory=PreservationContext)
     relationships: list[ObjectRelationship] = Field(default_factory=list)
+    derived_objects: list[DerivedObject] = Field(default_factory=list)
+    completeness: str = "COMPLETE"
+    extraction_budget: ExtractionBudget | None = None
+    extraction_usage: ExtractionUsage | None = None
     errors: list[str] = Field(default_factory=list)
     provenance: dict[str, Any] = Field(default_factory=dict)

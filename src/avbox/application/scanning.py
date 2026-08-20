@@ -57,6 +57,7 @@ class ScanService:
         self.staging = staging
         self.quarantine = quarantine
         self.maximum_file_bytes = maximum_file_bytes
+        self.recursive_analyzer: object | None = None
 
     def scan_file(self, source: Path, requested: list[str]) -> ScanJob:
         if source.stat().st_size > self.maximum_file_bytes:
@@ -104,6 +105,8 @@ class ScanService:
         original = (artifact.byte_size, artifact.hashes.sha256)
         try:
             for name in requested:
+                if name == "container":
+                    continue
                 generic = self.generic_analyzers.get(name)
                 if generic is not None:
                     try:
@@ -187,7 +190,14 @@ class ScanService:
                     )
                 finally:
                     adapter.cleanup(prepared)
-            job.normalized_verdict = aggregate_verdict(job.scanner_results)
+            job.root_verdict = aggregate_verdict(job.scanner_results)
+            job.normalized_verdict = job.root_verdict
+            if "container" in requested and self.recursive_analyzer is not None:
+                self.recursive_analyzer.process(job, source)  # type: ignore[attr-defined]
+                child_results = [
+                    result for child in job.derived_objects for result in child.scanner_results
+                ]
+                job.normalized_verdict = aggregate_verdict(job.scanner_results + child_results)
             if (source.stat().st_size, ArtifactService.hash_file(source).hashes.sha256) != original:
                 raise RuntimeError("READ_ONLY invariant violated: source changed during scan")
             if job.normalized_verdict in {Verdict.MALICIOUS, Verdict.SUSPICIOUS, Verdict.PUA}:

@@ -24,3 +24,12 @@ interpreted as shell/terminal/URL content. ExifTool is hostile-input software:
 it runs unprivileged, read-only, no-network, and bounded. Generic static
 characteristics cannot produce a malware verdict. No M1.3 analyzer extracts,
 mounts, enumerates, or recursively analyzes containers.
+
+M1.4 adds bounded userspace extraction. Archive names, permissions, links,
+timestamps, and sizes are hostile metadata; member paths never become host
+paths, symlinks/hardlinks/special files are not materialized, and no kernel
+mount or network access is used. Global recursion, child, byte, ratio, name,
+and time budgets defend against resource amplification. Derived children are
+transient analysis objects with independent hashes and unknown rights; clean
+derivatives are removed and security-positive derivatives may enter the
+existing quarantine with their graph provenance.

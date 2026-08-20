@@ -86,3 +86,18 @@ such as `strings.value`, `byte.entropy.shannon`, namespaced
 has `verdict: null`. The profile analyzes only the outer object: ZIP, LHA, or
 ISO recognition does not enumerate or extract children. TLSH is not advertised
 because its Debian 13 packaging is deferred.
+
+## M1.4 recursive profile
+
+`recursive-default@1` adds the `container` analyzer to the stable identity,
+static, and security analyzers. Results include `derived_objects`,
+`relationships`, `extraction_budget`, `extraction_usage`, and a
+`completeness` value. Each child has its own exact hashes and analyzer
+results; callers reconstruct parent/child chains from SHA-256 references,
+not filenames. `CONTAINS` describes archive members and `DECOMPRESSED_FROM`
+describes single-stream compression.
+
+The qualified formats are ZIP, tar, gzip, bzip2, and xz. Extraction is
+userspace-only and globally bounded. Safety-limit, encrypted, corrupt, and
+unsupported outcomes are explicit partial states and never become malware
+verdicts. AVBox does not write derived objects to RAB automatically.
