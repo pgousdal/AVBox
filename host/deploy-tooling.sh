@@ -25,6 +25,12 @@ fi
 if [[ -f "$ROOT/reports/dos-os2-deep-pass.md" ]]; then
   deploy "$ROOT/reports/dos-os2-deep-pass.md" /srv/avbox-bootstrap/manifests/dos-os2-deep-pass.md 0444
 fi
+if [[ -f "$ROOT/reports/old-windows-deep-pass.md" ]]; then
+  deploy "$ROOT/reports/old-windows-deep-pass.md" /srv/avbox-bootstrap/manifests/old-windows-deep-pass.md 0444
+fi
+if [[ -f "$ROOT/config/old-windows-final-matrix.yaml" ]]; then
+  deploy "$ROOT/config/old-windows-final-matrix.yaml" /srv/avbox-bootstrap/manifests/old-windows-final-matrix.yaml 0444
+fi
 if [[ -f "$ROOT/config/rab-future-acquisition.yaml" ]]; then
   deploy "$ROOT/config/rab-future-acquisition.yaml" /srv/avbox-bootstrap/manifests/rab-future-acquisition.yaml 0444
 fi

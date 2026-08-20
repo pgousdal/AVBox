@@ -219,3 +219,13 @@ index and retired antivirus-directory evidence were preserved. No current DAT
 was claimed compatible with OS/2; the newest evidence-bound OS/2 pair remains
 VirusScan 4.0.2 build 4009 with DAT 4009. See `dos-os2-deep-pass.md` for the
 native-OS/2 census, uncertainty classifications and complete wanted list.
+
+## Old-Windows deep-pass update — 2026-08-20
+
+The final pre-M1 pass preserved four official McAfee 1998 engine/DAT hotfix
+tuples covering native Win16, Win95/98, NT Intel and NT DEC Alpha, plus RMVclean
+4.01.14 and three exact official candidate archives. Platform-specific engine
+components and DATs remain related without assuming cross-platform binary
+identity. No current DAT was declared compatible with these engines. Detailed
+results and the future worker research matrix are in `old-windows-deep-pass.md`
+and `old-windows-final-matrix.yaml`.

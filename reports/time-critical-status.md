@@ -183,3 +183,16 @@ handled before broader historical documentation mirroring.
   home page. The master index and notice are preserved.
 - Exact results, evidence tiers, fingerprints, and future-source leads are in
   `dos-os2-deep-pass.md` and `rab-future-acquisition.yaml`.
+
+## Old-Windows deep-pass update — 2026-08-20
+
+- **PRESERVED / EMERGENCY:** official McAfee platform-specific 1998 hotfixes:
+  Win3.x and Win9x engine 3.2.1/DAT 3110, NT Intel 3.2.1/DAT 3110, and NT DEC
+  Alpha 3.20a/DAT 3109. The vendor pages and mutable directories are preserved.
+- **PRESERVED:** RMVclean 4.01.14 Excel 95/97 macro-removal utility.
+- **PRESERVED / CANDIDATE:** official `avtk-789.zip`, `3010-98.zip`, and
+  `v98i400d.zip`; exact bytes are secured, while version/platform/definition
+  semantics not established by the directory remain explicitly unqualified.
+- Finality and current DAT 11880 compatibility were not inferred. The eight-OS
+  research matrix is `old-windows-final-matrix.yaml`; full evidence and wanted
+  targets are in `old-windows-deep-pass.md` and `rab-future-acquisition.yaml`.
