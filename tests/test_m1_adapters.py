@@ -106,6 +106,7 @@ def test_loki_and_maldet_normalization(tmp_path: Path) -> None:
     assert loki.normalize(native("WARNING heuristic"))[0] == Verdict.SUSPICIOUS
     assert maldet.normalize(native("hits: 2"))[0] == Verdict.MALICIOUS
     assert maldet.normalize(native("hits: 0"))[0] == Verdict.CLEAN
+    assert loki.executable == "loki.py"
 
 
 def test_system_warning_is_ambiguous(tmp_path: Path) -> None:

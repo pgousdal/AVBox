@@ -242,7 +242,8 @@ class YaraXAdapter(YaraAdapter):
 
 
 class LokiAdapter(CommandFileAdapter):
-    executable = "loki"
+    # Debian's unrelated package named "loki" must never satisfy this probe.
+    executable = "loki.py"
     scanner_class = ScannerClass.IOC_DETECTOR
 
     def command(self, path: Path) -> list[str]:
