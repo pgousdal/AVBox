@@ -5,13 +5,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from avbox.models import Capability, ScannerResult, Verdict
+from avbox.models import Capability, QualificationState, ScannerClass, ScannerResult, Verdict
 
 
 @dataclass(frozen=True)
 class ProbeResult:
     available: bool
     detail: str
+    state: QualificationState = QualificationState.NOT_INSTALLED
+    version: str | None = None
+    definition_state: dict[str, str | int | None] | None = None
 
 
 @dataclass(frozen=True)
@@ -44,3 +47,45 @@ class ScannerAdapter(ABC):
 
     @abstractmethod
     def cleanup(self, prepared: PreparedScan) -> None: ...
+
+    def run_prepared(self, prepared: PreparedScan) -> tuple[Verdict, ScannerResult]:
+        return self.normalize(self.scan(prepared))
+
+    @property
+    @abstractmethod
+    def scanner_id(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def scanner_class(self) -> ScannerClass: ...
+
+    @property
+    def supports_file_scan(self) -> bool:
+        return Capability.FILE_SCAN in self.capabilities()
+
+    def update(self) -> object:
+        raise NotImplementedError(f"{self.scanner_id} update is not implemented")
+
+
+class SystemDetectorAdapter(ABC):
+    """Contract for host inspection tools that do not scan submitted files."""
+
+    @property
+    @abstractmethod
+    def scanner_id(self) -> str: ...
+
+    @property
+    def scanner_class(self) -> ScannerClass:
+        return ScannerClass.SYSTEM_DETECTOR
+
+    @abstractmethod
+    def probe(self) -> ProbeResult: ...
+
+    @abstractmethod
+    def system_scan(self) -> object: ...
+
+    @abstractmethod
+    def normalize(self, native_result: object) -> tuple[Verdict, ScannerResult]: ...
+
+    def update(self) -> object:
+        raise NotImplementedError(f"{self.scanner_id} update is not implemented")

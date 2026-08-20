@@ -4,14 +4,21 @@
     that:
       - ansible_facts.distribution == 'Debian'
       - ansible_facts.distribution_major_version == '13'
-    fail_msg: AVBox M0 provisioning supports Debian 13 only
+    fail_msg: AVBox M1 provisioning supports Debian 13 only
 
-- name: Install application runtime dependencies only
+- name: Install application and qualified Debian detector dependencies
   ansible.builtin.apt:
     name:
       - python3
       - python3-venv
+      - python3-packaging
       - b3sum
+      - bubblewrap
+      - clamav
+      - clamav-freshclam
+      - yara
+      - chkrootkit
+      - rkhunter
     state: present
     update_cache: true
 
@@ -41,7 +48,17 @@
     - "{{ avbox_state_root }}/staging"
     - "{{ avbox_state_root }}/jobs"
     - "{{ avbox_state_root }}/quarantine"
+    - "{{ avbox_state_root }}/scratch"
+    - "{{ avbox_state_root }}/raw-output"
     - "{{ avbox_state_root }}/rab-export"
+
+- name: Create controlled rules directory
+  ansible.builtin.file:
+    path: "{{ avbox_config_root }}/rules"
+    state: directory
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0750'
 
 - name: Create configuration directory
   ansible.builtin.file:
@@ -70,6 +87,7 @@
     - pyproject.toml
     - README.md
     - LICENSE
+  register: avbox_metadata_copy
   notify: Restart avbox
 
 - name: Copy AVBox Python package
@@ -80,16 +98,20 @@
     group: root
     mode: preserve
   notify: Restart avbox
+  register: avbox_source_copy
 
 - name: Create application virtual environment
   ansible.builtin.command:
     cmd: "python3 -m venv {{ avbox_install_root }}/venv"
     creates: "{{ avbox_install_root }}/venv/bin/python"
+  register: avbox_venv_create
 
 - name: Install AVBox package
   ansible.builtin.pip:
     name: "{{ avbox_install_root }}/source"
     virtualenv: "{{ avbox_install_root }}/venv"
+    editable: true
+  when: avbox_venv_create.changed or avbox_metadata_copy.changed or avbox_source_copy.changed
   notify: Restart avbox
 
 - name: Install production configuration
@@ -105,6 +127,15 @@
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../config/registry/registry.yaml"
     dest: "{{ avbox_config_root }}/registry.yaml"
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0640'
+  notify: Restart avbox
+
+- name: Install controlled M1 YARA qualification rules
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../config/rules/avbox-m1.yar"
+    dest: "{{ avbox_config_root }}/rules/avbox-m1.yar"
     owner: root
     group: "{{ avbox_group }}"
     mode: '0640'

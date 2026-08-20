@@ -3,6 +3,9 @@ paths:
   staging: /tmp/avbox-m0/staging
   jobs: /tmp/avbox-m0/jobs
   quarantine: /tmp/avbox-m0/quarantine
+  scratch: /tmp/avbox-m1/scratch
+  raw_output: /tmp/avbox-m1/raw-output
+  rules: config/rules
   registry: config/registry/registry.yaml
 storage:
   sqlite_path: /tmp/avbox-m0/state/avbox.db
@@ -15,6 +18,10 @@ quarantine:
 runtime:
   worker_concurrency: 2
   default_timeout_seconds: 300
+  memory_limit_mib: 1024
+  maximum_file_bytes: 1073741824
+  use_bubblewrap: true
+  default_file_detectors: [clamav, yara, yara-x, loki, maldet]
 api:
   host: 127.0.0.1
   port: 8080
@@ -31,4 +38,3 @@ rab:
   enabled: false
   endpoint: null
   export_directory: /tmp/avbox-m0/rab-export
-

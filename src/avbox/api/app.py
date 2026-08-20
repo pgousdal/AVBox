@@ -8,12 +8,12 @@ from avbox.runtime import Context, build_context
 
 def create_app(context: Context | None = None) -> FastAPI:
     ctx = context or build_context()
-    app = FastAPI(title="AVBox", version="0.1.0", docs_url="/api/docs", redoc_url=None)
+    app = FastAPI(title="AVBox", version="0.2.0", docs_url="/api/docs", redoc_url=None)
     app.state.context = ctx
 
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "milestone": "M0", "scanner_runtime": "not-installed"}
+        return {"status": "ok", "milestone": "M1", "scanner_runtime": "enabled"}
 
     @app.get("/api/v1/platforms")
     async def platforms() -> list[dict[str, object]]:
@@ -30,6 +30,40 @@ def create_app(context: Context | None = None) -> FastAPI:
             for job in ctx.jobs.list()
         ]
 
+    @app.get("/api/v1/jobs/{job_id}")
+    async def job(job_id: str) -> dict[str, object]:
+        found = ctx.jobs.get(job_id)
+        return (
+            {"status": "not-found"}
+            if found is None
+            else found.model_dump(mode="json", exclude={"input_artifact": {"filename", "source"}})
+        )
+
+    @app.get("/api/v1/jobs/{job_id}/results")
+    async def job_results(job_id: str) -> list[dict[str, object]]:
+        found = ctx.jobs.get(job_id)
+        if found is None:
+            return []
+        return [item.model_dump(mode="json") for item in found.scanner_results]
+
+    @app.get("/api/v1/scanners/status")
+    async def scanner_status() -> list[dict[str, object]]:
+        values: list[dict[str, object]] = []
+        persisted = ctx.jobs.scanner_statuses()
+        adapters = list(ctx.adapters.items()) + list(ctx.system_adapters.items())
+        for name, adapter in adapters:
+            probe = adapter.probe()
+            values.append(
+                {
+                    "id": name,
+                    "observed": vars(probe),
+                    "qualification": (
+                        persisted[name].model_dump(mode="json") if name in persisted else None
+                    ),
+                }
+            )
+        return values
+
     @app.get("/", response_class=HTMLResponse)
     async def status_page(request: Request) -> str:
         del request
@@ -42,12 +76,23 @@ def create_app(context: Context | None = None) -> FastAPI:
             if quarantine_root.exists()
             else 0
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M0</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M0 Foundation</dd>
-<dt>Status</dt><dd>ready; no scanner engines installed</dd>
+        adapters = list(ctx.adapters.items()) + list(ctx.system_adapters.items())
+        persisted = ctx.jobs.scanner_statuses()
+        scanner_rows = "".join(
+            f"<tr><td>{name}</td><td>{adapter.scanner_class}</td><td>"
+            f"{persisted[name].qualification_state if name in persisted else adapter.probe().state}"
+            "</td>"
+            f"<td>{adapter.probe().version or 'unknown'}</td></tr>"
+            for name, adapter in adapters
+        )
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1 Current Linux</dd>
+<dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>
-<dt>Quarantine count</dt><dd>{quarantine_count}</dd></dl></body></html>"""
+<dt>Quarantine count</dt><dd>{quarantine_count}</dd></dl>
+<table><thead><tr><th>Detector</th><th>Class</th><th>Runtime state</th><th>Version</th></tr></thead>
+<tbody>{scanner_rows}</tbody></table></body></html>"""
 
     return app
 

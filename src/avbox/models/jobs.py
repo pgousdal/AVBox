@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, Field
 
 from .artifacts import InputArtifact
-from .common import HistoricalMode, ScanPolicy, Verdict
+from .common import FindingKind, HistoricalMode, ScanPolicy, Verdict
 
 
 class JobStatus(StrEnum):
@@ -43,6 +43,10 @@ class ScannerResult(BaseModel):
     definition_date: datetime | None = None
     runtime_profile: str
     scanned_at: datetime
+    finding_kind: FindingKind | None = None
+    definition_state: dict[str, str | int | None] = Field(default_factory=dict)
+    duration_seconds: float | None = None
+    selected_reason: str | None = None
 
 
 class ScanJob(BaseModel):

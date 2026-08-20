@@ -11,6 +11,7 @@ ExecStart={{ avbox_install_root }}/venv/bin/uvicorn avbox.api.app:app --host {{ 
 Restart=on-failure
 RuntimeDirectory=avbox
 StateDirectory=avbox
+StateDirectoryMode=0700
 UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
@@ -20,6 +21,10 @@ ReadWritePaths={{ avbox_state_root }}
 RestrictSUIDSGID=true
 LockPersonality=true
 RestrictRealtime=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=2G
+TasksMax=256
+LimitCORE=0
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectKernelLogs=true
@@ -30,4 +35,3 @@ SystemCallArchitectures=native
 
 [Install]
 WantedBy=multi-user.target
-

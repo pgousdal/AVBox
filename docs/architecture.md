@@ -4,5 +4,6 @@ AVBox has three boundaries: the **control plane** owns jobs, YAML registry valid
 
 Business logic lives in application services shared by CLI and API. YAML is catalog truth. SQLite contains only mutable operational job state and may later migrate behind `JobService` without changing registry semantics.
 
-The suggested layout is followed. Existing bootstrap-rescue tooling remains in `bin/`, `host/`, `installer/`, and `reports/` as an external preservation producer, not an AVBox scanner.
+M1's `ScanService` selects only applicable file adapters. `SystemDetectorAdapter` is a separate contract for chkrootkit/rkhunter host inspection. Scanner execution remains replaceable and routes, templates, and CLI contain no detector-specific parsing.
 
+Operational versions, probe status, definition state, and scan results are runtime data. Product identity, declared capabilities, installation provenance, and qualification intent remain Git-versioned YAML. Existing bootstrap-rescue tooling remains an external preservation producer, not an AVBox scanner or dependency.

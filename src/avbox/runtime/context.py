@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from avbox.application import JobService
+from avbox.application import JobService, ScanService
 from avbox.config import AppSettings
+from avbox.preservation import PreservationService
 from avbox.registry import RegistryService
+from avbox.scanners.base import ScannerAdapter, SystemDetectorAdapter
+from avbox.scanners.factory import build_adapters
 
 
 @dataclass
@@ -14,12 +17,23 @@ class Context:
     settings: AppSettings
     registry: RegistryService
     jobs: JobService
+    adapters: dict[str, ScannerAdapter] = field(default_factory=dict)
+    system_adapters: dict[str, SystemDetectorAdapter] = field(default_factory=dict)
+    scans: ScanService | None = None
 
 
 def build_context(config_path: Path | None = None) -> Context:
     selected = config_path or Path(os.environ.get("AVBOX_CONFIG", "config/avbox.yaml"))
     settings = AppSettings.from_yaml(selected)
     registry = RegistryService(settings.paths.registry)
-    return Context(
-        settings=settings, registry=registry, jobs=JobService(settings.storage.sqlite_path)
+    jobs = JobService(settings.storage.sqlite_path)
+    adapters, system_adapters = build_adapters(settings)
+    scans = ScanService(
+        jobs=jobs,
+        adapters=adapters,
+        system_adapters=system_adapters,
+        staging=settings.paths.staging,
+        quarantine=PreservationService(settings.paths.quarantine),
+        maximum_file_bytes=settings.runtime.maximum_file_bytes,
     )
+    return Context(settings, registry, jobs, adapters, system_adapters, scans)

@@ -21,6 +21,7 @@ class ScannerProduct(BaseModel):
     product: str
     scanner_class: ScannerClass
     notes: str | None = None
+    license: str | None = None
 
 
 class ScannerRelease(BaseModel):
@@ -38,6 +39,9 @@ class ScannerRelease(BaseModel):
     offline_definitions_supported: bool | None = None
     definition_snapshot_supported: bool | None = None
     rights: Rights = Field(default_factory=Rights)
+    installation_source: str | None = None
+    installation_method: str | None = None
+    update_mechanism: str | None = None
 
     @model_validator(mode="after")
     def historical_mode_requires_historical_qualification(self) -> ScannerRelease:
@@ -60,6 +64,9 @@ class DetectorRelease(BaseModel):
     capabilities: set[Capability]
     dependency_mode: DependencyMode
     qualification_status: str
+    installation_source: str | None = None
+    installation_method: str | None = None
+    update_mechanism: str | None = None
 
 
 class DefinitionSet(BaseModel):

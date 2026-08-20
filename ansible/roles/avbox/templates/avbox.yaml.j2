@@ -3,13 +3,22 @@ paths:
   staging: {{ avbox_state_root }}/staging
   jobs: {{ avbox_state_root }}/jobs
   quarantine: {{ avbox_state_root }}/quarantine
+  scratch: {{ avbox_state_root }}/scratch
+  raw_output: {{ avbox_state_root }}/raw-output
+  rules: {{ avbox_config_root }}/rules
   registry: {{ avbox_config_root }}/registry.yaml
 storage:
   sqlite_path: {{ avbox_state_root }}/avbox.db
   clean_bytes_retention_hours: 0
   minimum_free_gib: 5
 quarantine: {enabled: true, content_addressed: true, immutable_after_admission: true}
-runtime: {worker_concurrency: 2, default_timeout_seconds: 300}
+runtime:
+  worker_concurrency: 2
+  default_timeout_seconds: 300
+  memory_limit_mib: 1024
+  maximum_file_bytes: 1073741824
+  use_bubblewrap: true
+  default_file_detectors: [clamav, yara, yara-x, loki, maldet]
 api:
   host: {{ avbox_api_host }}
   port: {{ avbox_api_port }}
@@ -18,4 +27,3 @@ web: {enabled: true}
 logging: {level: INFO, json: true}
 preservation: {external_manifests_enabled: true, bootstrap_import_enabled: true}
 rab: {enabled: false, endpoint: null, export_directory: '{{ avbox_state_root }}/rab-export'}
-

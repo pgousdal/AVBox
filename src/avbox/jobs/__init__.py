@@ -4,4 +4,3 @@ from avbox.application import JobService
 from avbox.models import JobStatus, ScanJob, ScannerResult
 
 __all__ = ["JobService", "JobStatus", "ScanJob", "ScannerResult"]
-

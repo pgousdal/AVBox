@@ -22,14 +22,14 @@ platforms:
   - {id: msx, label: MSX, family: msx, historical: true}
   - {id: pc98, label: NEC PC-98, family: pc98, historical: true}
 products:
-  - {id: clamav, vendor: Cisco Talos, product: ClamAV, scanner_class: antivirus_engine}
+  - {id: clamav, vendor: Cisco Talos, product: ClamAV, scanner_class: antivirus_engine, license: GPL-2.0-only with component exceptions}
   - {id: microsoft-defender, vendor: Microsoft, product: Microsoft Defender, scanner_class: antivirus_engine}
-  - {id: yara, vendor: VirusTotal, product: YARA, scanner_class: rule_engine}
-  - {id: yara-x, vendor: VirusTotal, product: YARA-X, scanner_class: rule_engine}
-  - {id: loki, vendor: Nextron Systems, product: LOKI, scanner_class: ioc_detector}
-  - {id: maldet, vendor: R-fx Networks, product: Linux Malware Detect, scanner_class: malware_detector}
-  - {id: chkrootkit, vendor: chkrootkit project, product: chkrootkit, scanner_class: system_detector}
-  - {id: rkhunter, vendor: Rootkit Hunter project, product: rkhunter, scanner_class: system_detector}
+  - {id: yara, vendor: VirusTotal, product: YARA, scanner_class: rule_engine, license: BSD-3-Clause}
+  - {id: yara-x, vendor: VirusTotal, product: YARA-X, scanner_class: rule_engine, license: BSD-3-Clause}
+  - {id: loki, vendor: Nextron Systems, product: LOKI, scanner_class: ioc_detector, license: GPL-3.0-only, notes: Python LOKI is deprecated and in inactive maintenance; M1 runtime deferred.}
+  - {id: maldet, vendor: R-fx Networks, product: Linux Malware Detect, scanner_class: malware_detector, license: GPL-2.0-only}
+  - {id: chkrootkit, vendor: chkrootkit project, product: chkrootkit, scanner_class: system_detector, license: BSD-2-Clause with component exceptions}
+  - {id: rkhunter, vendor: Rootkit Hunter project, product: rkhunter, scanner_class: system_detector, license: GPL-2.0-or-later}
   - {id: sophos-sav-linux, vendor: Sophos, product: Sophos Anti-Virus for Linux 9.x, scanner_class: antivirus_engine, notes: Historical artifacts and runtime qualification incomplete.}
   - {id: fprot-linux, vendor: FRISK, product: F-PROT for Linux, scanner_class: antivirus_engine, notes: Final release and definitions remain artifact-wanted.}
   - {id: mcafee-dos, vendor: McAfee, product: VirusScan/SCAN for DOS, scanner_class: antivirus_engine, notes: Exact engine and definition pairing incomplete.}
@@ -40,7 +40,7 @@ runtime_profiles:
   - {id: windows-worker, mechanism: windows_vm, platform_id: windows-current, network_policy: definitions-only}
   - {id: historical-placeholder, mechanism: unimplemented_historical_runtime, platform_id: dos, network_policy: none}
 worker_profiles:
-  - {id: local-adapter, adapter: local, isolation: dedicated-service-account}
+  - {id: local-adapter, adapter: local, isolation: bubblewrap-read-only-root-no-network-bounded-process}
   - {id: vm-adapter, adapter: vm, isolation: disposable-vm}
   - {id: unimplemented-historical, adapter: placeholder, isolation: not-qualified}
 scanner_releases:
@@ -51,11 +51,14 @@ scanner_releases:
     platform_ids: [linux-current]
     runtime_profile_id: local-linux
     worker_profile_id: local-adapter
-    qualification_status: not-installed-m0
+    qualification_status: debian13-runtime-qualification-required
     capabilities: [file_scan, directory_scan, archive_scan, scan_only]
     dependency_mode: local_engine
     offline_definitions_supported: true
     definition_snapshot_supported: true
+    installation_source: Debian 13 repositories
+    installation_method: apt package clamav
+    update_mechanism: freshclam (administrative operation separate from scan)
   - id: defender-current-placeholder
     product_id: microsoft-defender
     product_version: null
@@ -128,12 +131,11 @@ scanner_releases:
     capabilities: [file_scan, scan_only]
     dependency_mode: local_engine
 detector_releases:
-  - {id: yara-current-placeholder, product_id: yara, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
-  - {id: yara-x-current-placeholder, product_id: yara-x, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
-  - {id: loki-current-placeholder, product_id: loki, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
-  - {id: maldet-current-placeholder, product_id: maldet, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
-  - {id: chkrootkit-current-placeholder, product_id: chkrootkit, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
-  - {id: rkhunter-current-placeholder, product_id: rkhunter, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: yara-current, product_id: yara, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: debian13-runtime-qualification-required, installation_source: Debian 13 repositories, installation_method: apt package yara, update_mechanism: versioned AVBox rule-set deployment}
+  - {id: yara-x-current, product_id: yara-x, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: deferred-until-trusted-reproducible-debian13-package, installation_source: official upstream required, installation_method: null, update_mechanism: versioned AVBox rule-set deployment}
+  - {id: loki-current, product_id: loki, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: deferred-no-debian13-package, installation_source: official upstream required, installation_method: null, update_mechanism: explicit signature update only}
+  - {id: maldet-current, product_id: maldet, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: deferred-no-debian13-package, installation_source: official R-fx Networks required, installation_method: null, update_mechanism: explicit maldet signature update only}
+  - {id: chkrootkit-current, product_id: chkrootkit, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: debian13-runtime-qualification-required, installation_source: Debian 13 repositories, installation_method: apt package chkrootkit, update_mechanism: package upgrade}
+  - {id: rkhunter-current, product_id: rkhunter, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: debian13-runtime-qualification-required, installation_source: Debian 13 repositories, installation_method: apt package rkhunter, update_mechanism: explicit rkhunter database update separate from scan}
 definition_sets:
   - {id: avast-v18-external-placeholder, product_id: avast-188, definition_version: null, definition_date: null, compatible_engine_versions: ['18'], compatibility_status: externally-preserved-qualification-not-imported}
-

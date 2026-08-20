@@ -12,6 +12,9 @@ class PathSettings(BaseModel):
     staging: Path
     jobs: Path
     quarantine: Path
+    scratch: Path
+    raw_output: Path
+    rules: Path
     registry: Path
 
 
@@ -30,6 +33,12 @@ class QuarantineSettings(BaseModel):
 class RuntimeSettings(BaseModel):
     worker_concurrency: int = Field(ge=1, le=64, default=2)
     default_timeout_seconds: int = Field(ge=1, default=300)
+    memory_limit_mib: int = Field(ge=64, default=1024)
+    maximum_file_bytes: int = Field(ge=1, default=1024 * 1024 * 1024)
+    use_bubblewrap: bool = True
+    default_file_detectors: list[str] = Field(
+        default_factory=lambda: ["clamav", "yara", "yara-x", "loki", "maldet"]
+    )
 
 
 class APISettings(BaseModel):

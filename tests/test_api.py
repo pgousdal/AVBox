@@ -21,5 +21,14 @@ def test_api_and_status_page(tmp_path: Path) -> None:
     assert asyncio.run(routes["/api/v1/platforms"].endpoint())
     assert asyncio.run(routes["/api/v1/scanners"].endpoint())
     assert asyncio.run(routes["/api/v1/jobs"].endpoint()) == []
-    expected = {"/health", "/api/v1/platforms", "/api/v1/scanners", "/api/v1/jobs", "/"}
+    expected = {
+        "/health",
+        "/api/v1/platforms",
+        "/api/v1/scanners",
+        "/api/v1/scanners/status",
+        "/api/v1/jobs",
+        "/api/v1/jobs/{job_id}",
+        "/api/v1/jobs/{job_id}/results",
+        "/",
+    }
     assert expected <= routes.keys()

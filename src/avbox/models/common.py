@@ -57,3 +57,23 @@ class DependencyMode(StrEnum):
     LOCAL_ENGINE = "local_engine"
     CLOUD_ASSISTED = "cloud_assisted"
     CLOUD_REQUIRED = "cloud_required"
+
+
+class QualificationState(StrEnum):
+    NOT_INSTALLED = "NOT_INSTALLED"
+    INSTALLED = "INSTALLED"
+    PROBED = "PROBED"
+    QUALIFIED = "QUALIFIED"
+    DEGRADED = "DEGRADED"
+    FAILED = "FAILED"
+    DISABLED = "DISABLED"
+
+
+class FindingKind(StrEnum):
+    SIGNATURE_MATCH = "signature_match"
+    IOC_MATCH = "ioc_match"
+    RULE_MATCH = "rule_match"
+    HEURISTIC_WARNING = "heuristic_warning"
+    INTEGRITY_WARNING = "integrity_warning"
+    ROOTKIT_WARNING = "rootkit_warning"
+    OPERATIONAL_ERROR = "operational_error"
