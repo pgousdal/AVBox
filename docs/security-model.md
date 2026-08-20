@@ -17,3 +17,10 @@ access always uses generated paths. Debian `file`/libmagic runs through the
 read-only, no-network bubblewrap boundary and bounded process limits. Its magic
 database is available only through the existing read-only system view; M1.2
 adds no writable system path or network exception.
+
+M1.3 treats strings, entropy, ExifTool tags, and similarity fingerprints as
+attacker-controlled observations. Strings are never rendered as active HTML or
+interpreted as shell/terminal/URL content. ExifTool is hostile-input software:
+it runs unprivileged, read-only, no-network, and bounded. Generic static
+characteristics cannot produce a malware verdict. No M1.3 analyzer extracts,
+mounts, enumerates, or recursively analyzes containers.

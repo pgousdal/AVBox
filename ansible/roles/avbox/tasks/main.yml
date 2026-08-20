@@ -16,6 +16,8 @@
       - bubblewrap
       - file
       - libmagic1
+      - libimage-exiftool-perl
+      - ssdeep
       - clamav
       - clamav-freshclam
       - yara

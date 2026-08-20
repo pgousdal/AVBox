@@ -39,6 +39,14 @@ class RuntimeSettings(BaseModel):
     default_file_detectors: list[str] = Field(
         default_factory=lambda: ["clamav", "yara", "yara-x", "loki", "maldet"]
     )
+    strings_min_length: int = Field(ge=2, le=1024, default=4)
+    strings_max_length: int = Field(ge=4, le=65536, default=4096)
+    strings_max_count: int = Field(ge=1, le=100000, default=2000)
+    strings_max_total_chars: int = Field(ge=64, le=10_000_000, default=200_000)
+    strings_max_source_bytes: int = Field(ge=1024, default=16 * 1024 * 1024)
+    metadata_max_fields: int = Field(ge=1, le=10000, default=256)
+    metadata_max_value_length: int = Field(ge=32, le=1_000_000, default=4096)
+    metadata_max_total_chars: int = Field(ge=128, le=10_000_000, default=200_000)
 
 
 class APISettings(BaseModel):

@@ -4,7 +4,7 @@
 - **M1:** current Linux worker (implemented/qualified per `m1-acceptance.md`). These span antivirus, rule, IOC, malware and system/rootkit classes, not seven antivirus engines.
 - **M1.1:** RAB Protocol v1 and generic asynchronous analysis-job foundation.
 - **M1.2:** exact identity, safe filename/extension metadata, and bounded libmagic file-type evidence.
-- **M1.3:** generic static characteristics: strings, entropy, bounded exact metadata extraction, and similarity groundwork.
+- **M1.3:** generic static characteristics: bounded strings, Shannon entropy/byte statistics, isolated ExifTool metadata, and ssdeep similarity groundwork (TLSH deferred pending trusted Debian packaging).
 - **M1.4:** container and recursive analysis.
 - **M1.5:** executable analysis.
 - **M1.6:** document analysis.

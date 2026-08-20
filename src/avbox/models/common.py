@@ -12,6 +12,9 @@ class ScannerClass(StrEnum):
     IDENTITY_ANALYZER = "identity_analyzer"
     FILE_TYPE_ANALYZER = "file_type_analyzer"
     METADATA_ANALYZER = "metadata_analyzer"
+    STRINGS_ANALYZER = "strings_analyzer"
+    BYTE_STATISTICS_ANALYZER = "byte_statistics_analyzer"
+    SIMILARITY_ANALYZER = "similarity_analyzer"
 
 
 class Confidence(StrEnum):

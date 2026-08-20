@@ -405,13 +405,14 @@ class RABService:
             },
         )
 
-    def _analyzer_available(
-        self, analyzer_id: str, runtime: Mapping[str, object]
-    ) -> bool:
+    def _analyzer_available(self, analyzer_id: str, runtime: Mapping[str, object]) -> bool:
         generic = self.scans.generic_analyzers.get(analyzer_id)
         if generic is not None:
             probe = generic.probe()
-            return probe.available and probe.state == QualificationState.PROBED
+            return probe.available and probe.state in {
+                QualificationState.PROBED,
+                QualificationState.QUALIFIED,
+            }
         return (
             analyzer_id in self.scans.adapters
             and analyzer_id in runtime

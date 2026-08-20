@@ -14,3 +14,8 @@ M1.2 activates generic analyzers on that same job. Exact identity and bounded
 filename metadata are deterministic in-process analyzers; file identification
 is an isolated external analyzer. Their typed `AnalyzerResult` values coexist
 with scanner results without requiring or manufacturing a security verdict.
+
+M1.3 adds bounded strings, whole-object byte statistics, isolated bounded
+ExifTool metadata, and optional ssdeep similarity fingerprints. These analyzers
+remain outer-object-only and produce observations/assessments, never security
+verdicts. Similarity fingerprints never replace SHA-256 identity or CAS keys.

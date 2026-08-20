@@ -10,3 +10,8 @@ profiles:
     analyzers: [identity, basic-metadata, file-type]
     capabilities: [object_identity, file_type, basic_metadata]
     enabled: true
+  - id: static-default
+    version: 1
+    analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, generic-metadata, similarity]
+    capabilities: [object_identity, static_characteristics, similarity_fingerprint]
+    enabled: true

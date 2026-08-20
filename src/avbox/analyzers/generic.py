@@ -438,4 +438,7 @@ def build_generic_analyzers(settings: AppSettings) -> dict[str, GenericAnalyzer]
         MetadataAnalyzer(),
         FileMagicAnalyzer(settings),
     ]
+    from avbox.analyzers.static import build_static_analyzers
+
+    values.extend(build_static_analyzers(settings).values())
     return {value.analyzer_id: value for value in values}

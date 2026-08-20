@@ -76,3 +76,13 @@ OpenAPI is available at `/openapi.json`. Core Pydantic schema snapshots are test
 
 The schema can retain conflicting extension, declared-MIME, and libmagic
 evidence. None of those disagreements independently creates a security verdict.
+
+## M1.3 static profile
+
+`static-default@1` adds `strings`, `byte-statistics`, `generic-metadata`, and
+`similarity` to the unchanged M1.2 identity/type analyzers. It returns facts
+such as `strings.value`, `byte.entropy.shannon`, namespaced
+`metadata.exiftool.*`, and `similarity.ssdeep`. A static-only result normally
+has `verdict: null`. The profile analyzes only the outer object: ZIP, LHA, or
+ISO recognition does not enumerate or extract children. TLSH is not advertised
+because its Debian 13 packaging is deferred.

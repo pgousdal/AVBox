@@ -36,7 +36,7 @@ def create_app(context: Context | None = None) -> FastAPI:
 
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "milestone": "M1.2", "scanner_runtime": "enabled"}
+        return {"status": "ok", "milestone": "M1.3", "scanner_runtime": "enabled"}
 
     @app.get("/api/v1/platforms")
     async def platforms() -> list[dict[str, object]]:
@@ -116,8 +116,8 @@ def create_app(context: Context | None = None) -> FastAPI:
             f"</td><td>{adapter.probe().version or 'unknown'}</td></tr>"
             for name, adapter in ctx.generic_analyzers.items()
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.2</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.2 Generic Identity</dd>
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.3</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.3 Static Characteristics</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>

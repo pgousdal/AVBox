@@ -33,6 +33,9 @@ products:
   - {id: avbox-identity, vendor: AVBox, product: Exact Object Identity, scanner_class: identity_analyzer, license: MIT}
   - {id: file-libmagic, vendor: Christos Zoulas and contributors, product: file/libmagic, scanner_class: file_type_analyzer, license: BSD-2-Clause}
   - {id: avbox-basic-metadata, vendor: AVBox, product: Basic Object Metadata, scanner_class: metadata_analyzer, license: MIT}
+  - {id: avbox-strings, vendor: AVBox, product: Bounded Strings, scanner_class: strings_analyzer, license: MIT}
+  - {id: avbox-byte-statistics, vendor: AVBox, product: Byte Statistics, scanner_class: byte_statistics_analyzer, license: MIT}
+  - {id: avbox-similarity, vendor: AVBox, product: Similarity Fingerprints, scanner_class: similarity_analyzer, license: MIT}
   - {id: sophos-sav-linux, vendor: Sophos, product: Sophos Anti-Virus for Linux 9.x, scanner_class: antivirus_engine, notes: Historical artifacts and runtime qualification incomplete.}
   - {id: fprot-linux, vendor: FRISK, product: F-PROT for Linux, scanner_class: antivirus_engine, notes: Final release and definitions remain artifact-wanted.}
   - {id: mcafee-dos, vendor: McAfee, product: VirusScan/SCAN for DOS, scanner_class: antivirus_engine, notes: Exact engine and definition pairing incomplete.}
