@@ -97,6 +97,16 @@ rights evidence says otherwise, `redistribution_rights` is `unknown`.
 
 ## Historical Linux
 
+- **PRESERVED (deep pass)** — Comodo Antivirus for Linux 1.1.268025.1 x86-64
+  RPM and i386/amd64 DEBs. The i386 RPM is now **DEAD_SOURCE** (404) but has an
+  official exact size/MD5/SHA-1 fingerprint.
+- **ARTIFACT_WANTED (deep pass)** — genuine Sophos SAV Linux 9.17.4
+  `sav-linux-9-i386.tgz`; the official URL now returns an export-compliance
+  interstitial. It was not bypassed or represented as installer bytes.
+- **PRESERVED (deep pass)** — primary Linux/Unix evidence for Sophos 7.6.7 and
+  9.17.x, McAfee VirusScan UNIX 4.32.0, ESET Linux Desktop, AVG 2011 and
+  Bitdefender Scanner for Unices. See `historical-linux-unix-deep-pass.md`.
+
 - **PRESERVED** — Dr.Web for UNIX File Servers 6.02 manual, including historical
   32/64-bit Linux distributions, VDB storage, engine layout and `update.pl`.
 - **PRESERVED** — Trend Micro IWSVA 6.5 SP1 manual from the earlier pass.

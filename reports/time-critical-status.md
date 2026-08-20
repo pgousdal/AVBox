@@ -133,6 +133,24 @@ Stable, versioned vendor manuals already secured can wait. Mutable installers,
 definition endpoints, rotating DAT indexes, and failed/fragile sources should be
 handled before broader historical documentation mirroring.
 
+## Historical Linux/Unix deep-pass update — 2026-08-20
+
+- **PRESERVED:** three original Comodo Antivirus for Linux 1.1.268025.1
+  packages (x86-64 RPM and i386/amd64 DEBs), plus official checksum/release and
+  platform evidence.
+- **DEAD_SOURCE:** the sibling Comodo i386 RPM returned 404 despite an exact
+  official size/MD5/SHA-1 fingerprint.
+- **ARTIFACT_WANTED:** Sophos SAV Linux 9.17.4. Its exact official URL returns
+  a 9,430-byte export-compliance/reCAPTCHA page rather than the advertised
+  350 MB archive. The response is preserved as evidence and not mislabeled as
+  an installer; a validated retry is a failure event.
+- **PRESERVED:** Sophos 7.6.7 release tuple and 9.17.x EOL evidence, McAfee
+  VirusScan UNIX 4.32.0 guide, ESET Linux Desktop EOL, AVG Linux/FreeBSD 2011
+  manual, and Bitdefender Scanner for Unices datasheet. The Sophos download
+  index facts are documented, but the VM's index acquisition timed out.
+- Full findings and exact wanted fingerprints are in
+  `historical-linux-unix-deep-pass.md` and `rab-future-acquisition.yaml`.
+
 ## Preserve-before-M0 rescue update — 2026-08-20
 
 - **PRESERVED:** McAfee/Trellix AVV DAT 11880 (`avvdat-11880.tar`), dated

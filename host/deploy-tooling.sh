@@ -19,6 +19,9 @@ fi
 if [[ -f "$ROOT/reports/preserve-before-m0.md" ]]; then
   deploy "$ROOT/reports/preserve-before-m0.md" /srv/avbox-bootstrap/manifests/preserve-before-m0.md 0444
 fi
+if [[ -f "$ROOT/reports/historical-linux-unix-deep-pass.md" ]]; then
+  deploy "$ROOT/reports/historical-linux-unix-deep-pass.md" /srv/avbox-bootstrap/manifests/historical-linux-unix-deep-pass.md 0444
+fi
 if [[ -f "$ROOT/config/rab-future-acquisition.yaml" ]]; then
   deploy "$ROOT/config/rab-future-acquisition.yaml" /srv/avbox-bootstrap/manifests/rab-future-acquisition.yaml 0444
 fi

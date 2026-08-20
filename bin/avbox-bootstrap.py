@@ -62,11 +62,11 @@ def dns_evidence(url):
     try: result["addresses"] = sorted({x[4][0] for x in socket.getaddrinfo(host, None)})
     except OSError as e: result["error"] = repr(e)
     return result
-def failure_record(a, started, exc, redirects, incoming=None):
+def failure_record(a, started, exc, redirects, incoming=None, response=None):
     reason = getattr(exc, "reason", None); tls_error = repr(reason or exc) if isinstance(exc, ssl.SSLError) or isinstance(reason, ssl.SSLError) else None
     is_https = urllib.parse.urlparse(a.get("url", "")).scheme.casefold() == "https"
     tls_result = "failed" if tls_error else ("validated-before-http-response" if is_https and isinstance(exc,urllib.error.HTTPError) else "not-observed" if is_https else "not-applicable")
-    return {"schema":2,"artifact_id":a.get("id"),"requested_url":a.get("url"),"source_url":a.get("url"),"timestamp_utc":utcnow(),"attempt_started_utc":started,"dns":dns_evidence(a.get("url", "")),"tls":{"applicable":is_https,"certificate_validation_enforced":True if is_https else None,"result":tls_result,"error":tls_error},"http_status":exc.code if isinstance(exc,urllib.error.HTTPError) else None,"redirect_chain":redirects,"error":repr(exc),"partial_bytes":incoming.stat().st_size if incoming and incoming.exists() else 0,"source_risk":a.get("source_risk")}
+    return {"schema":2,"artifact_id":a.get("id"),"requested_url":a.get("url"),"source_url":a.get("url"),"timestamp_utc":utcnow(),"attempt_started_utc":started,"dns":dns_evidence(a.get("url", "")),"tls":{"applicable":is_https,"certificate_validation_enforced":True if is_https else None,"result":tls_result,"error":tls_error},"http_status":(response or {}).get("status", exc.code if isinstance(exc,urllib.error.HTTPError) else None),"http":response,"redirect_chain":(response or {}).get("redirect_chain", redirects),"error":repr(exc),"partial_bytes":incoming.stat().st_size if incoming and incoming.exists() else 0,"source_risk":a.get("source_risk")}
 class Redirects(urllib.request.HTTPRedirectHandler):
     def __init__(self): self.chain = []
     def redirect_request(self, req, fp, code, msg, headers, newurl):
@@ -96,7 +96,17 @@ def acquire_one(raw):
             response={"status":status,"final_url":r.geturl(),"headers":dict(r.headers.items()),"redirect_chain":redirects.chain,"resumed_from":offset,"certificate_validation_enforced":True}
     except Exception as e:
         append(ROOT/"logs/failures.jsonl",failure_record(a,started,e,redirects.chain,incoming)); print(f"FAILED {a.get('id')}: {e}",file=sys.stderr); return False
-    dig=hashes(incoming); size=incoming.stat().st_size; prior_events=events()
+    size=incoming.stat().st_size
+    content_type=response.get("headers",{}).get("Content-Type","").split(";",1)[0].strip().casefold()
+    expected_types=[x.casefold() for x in a.get("expected_content_types",[])]
+    validation_errors=[]
+    if a.get("expected_min_bytes") is not None and size < int(a["expected_min_bytes"]): validation_errors.append(f"response size {size} below expected minimum {a['expected_min_bytes']}")
+    if expected_types and content_type not in expected_types: validation_errors.append(f"unexpected Content-Type {content_type or 'missing'}")
+    if validation_errors:
+        exc=ValueError("; ".join(validation_errors))
+        append(ROOT/"logs/failures.jsonl",failure_record(a,started,exc,redirects.chain,incoming,response))
+        print(f"FAILED {a.get('id')}: {exc}",file=sys.stderr); return False
+    dig=hashes(incoming); prior_events=events()
     same=next((e for e in prior_events if e.get("hashes",{}).get("sha256")==dig["sha256"] and Path(e.get("stored_path","")).exists()),None)
     source_prior=[e for e in prior_events if e.get("source_url")==a["url"]]; changed=bool(source_prior and all(e.get("hashes",{}).get("sha256")!=dig["sha256"] for e in source_prior))
     if same: stored=Path(same["stored_path"]); incoming.unlink(); duplicate=True
