@@ -25,8 +25,8 @@ Qualification was performed on the dedicated `avbox-m1-qualification` Debian
 - Job `ee69d51f-34ab-4c76-a7e8-d52bcdcd3a88` completed cleanly while an
   ordinary service restart drained the queue; simulated unclean interruption
   reconciliation is covered by automated tests.
-- The final two normal Ansible runs reported `changed=2` (restoring the test
-  queue capacity and restarting the service) and then `changed=0`.
+- The final two Ansible runs reported `changed=3` (deploying the final source
+  hardening and restarting the service) and then `changed=0`.
 
 Qualification exposed and fixed three M1 runtime defects: missing `AF_NETLINK`
 for bubblewrap under systemd, isolation-startup exit code 1 being mistaken for
