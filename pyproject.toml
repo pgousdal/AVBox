@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "avbox"
+version = "0.1.0"
+description = "Private, scan-only, multi-engine malware analysis appliance"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+dependencies = [
+  "blake3>=1.0,<2",
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "PyYAML>=6.0,<7",
+  "uvicorn>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = ["build>=1.2", "httpx>=0.28", "mypy>=1.14", "pytest>=8.3", "ruff>=0.9", "types-PyYAML>=6.0"]
+
+[project.scripts]
+avbox = "avbox.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/avbox"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["bin", "host", "installer", "reports"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["avbox"]

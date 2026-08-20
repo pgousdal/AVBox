@@ -1,0 +1,10 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Restart avbox
+  ansible.builtin.systemd_service:
+    name: avbox
+    state: restarted
+

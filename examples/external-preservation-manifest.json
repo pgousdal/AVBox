@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "authority": "example-external-preservation-system",
+  "generated_at": "2026-08-20T00:00:00Z",
+  "artifacts": [{
+    "original_filename": "example.bin",
+    "hashes": {
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "blake3": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sha1": "cccccccccccccccccccccccccccccccccccccccc",
+      "md5": "dddddddddddddddddddddddddddddddd"
+    },
+    "byte_size": 1,
+    "source_urls": ["https://vendor.invalid/example.bin"],
+    "compatibility": {},
+    "relationships": [],
+    "provenance_events": [],
+    "rights": {"redistribution_rights": "unknown", "acquisition_basis": "example", "source_provenance": "official vendor URL example"}
+  }],
+  "failed_sources": []
+}

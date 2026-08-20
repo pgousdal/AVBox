@@ -1,0 +1,139 @@
+schema_version: 1
+platforms:
+  - {id: linux-current, label: Current Linux, family: linux, historical: false}
+  - {id: windows-current, label: Current Windows, family: windows, historical: false}
+  - {id: dos, label: DOS, family: dos, historical: true}
+  - {id: windows-3x, label: Windows 3.x, family: windows, historical: true}
+  - {id: windows-9x, label: Windows 95/98/ME, family: windows, historical: true}
+  - {id: windows-nt351, label: Windows NT 3.51, family: windows, historical: true}
+  - {id: windows-nt4, label: Windows NT 4.0, family: windows, historical: true}
+  - {id: windows-2000, label: Windows 2000, family: windows, historical: true}
+  - {id: windows-xp, label: Windows XP, family: windows, historical: true}
+  - {id: windows-vista, label: Windows Vista, family: windows, historical: true}
+  - {id: os2, label: OS/2, family: os2, historical: true}
+  - {id: amiga, label: Amiga, family: amiga, historical: true}
+  - {id: atari-st, label: Atari ST, family: atari, historical: true}
+  - {id: c64, label: Commodore 64, family: commodore, historical: true}
+  - {id: c128, label: Commodore 128, family: commodore, historical: true}
+  - {id: apple2, label: Apple II, family: apple, historical: true}
+  - {id: apple-iigs, label: Apple IIGS, family: apple, historical: true}
+  - {id: classic-mac, label: Classic Mac OS, family: apple, historical: true}
+  - {id: risc-os, label: RISC OS, family: risc-os, historical: true}
+  - {id: msx, label: MSX, family: msx, historical: true}
+  - {id: pc98, label: NEC PC-98, family: pc98, historical: true}
+products:
+  - {id: clamav, vendor: Cisco Talos, product: ClamAV, scanner_class: antivirus_engine}
+  - {id: microsoft-defender, vendor: Microsoft, product: Microsoft Defender, scanner_class: antivirus_engine}
+  - {id: yara, vendor: VirusTotal, product: YARA, scanner_class: rule_engine}
+  - {id: yara-x, vendor: VirusTotal, product: YARA-X, scanner_class: rule_engine}
+  - {id: loki, vendor: Nextron Systems, product: LOKI, scanner_class: ioc_detector}
+  - {id: maldet, vendor: R-fx Networks, product: Linux Malware Detect, scanner_class: malware_detector}
+  - {id: chkrootkit, vendor: chkrootkit project, product: chkrootkit, scanner_class: system_detector}
+  - {id: rkhunter, vendor: Rootkit Hunter project, product: rkhunter, scanner_class: system_detector}
+  - {id: sophos-sav-linux, vendor: Sophos, product: Sophos Anti-Virus for Linux 9.x, scanner_class: antivirus_engine, notes: Historical artifacts and runtime qualification incomplete.}
+  - {id: fprot-linux, vendor: FRISK, product: F-PROT for Linux, scanner_class: antivirus_engine, notes: Final release and definitions remain artifact-wanted.}
+  - {id: mcafee-dos, vendor: McAfee, product: VirusScan/SCAN for DOS, scanner_class: antivirus_engine, notes: Exact engine and definition pairing incomplete.}
+  - {id: ibm-antivirus-os2, vendor: IBM, product: IBM AntiVirus for OS/2, scanner_class: antivirus_engine, notes: Original media and runtime qualification incomplete.}
+  - {id: avast-188, vendor: Avast, product: Avast Free Antivirus, scanner_class: antivirus_engine}
+runtime_profiles:
+  - {id: local-linux, mechanism: local_cli, platform_id: linux-current, network_policy: definitions-only}
+  - {id: windows-worker, mechanism: windows_vm, platform_id: windows-current, network_policy: definitions-only}
+  - {id: historical-placeholder, mechanism: unimplemented_historical_runtime, platform_id: dos, network_policy: none}
+worker_profiles:
+  - {id: local-adapter, adapter: local, isolation: dedicated-service-account}
+  - {id: vm-adapter, adapter: vm, isolation: disposable-vm}
+  - {id: unimplemented-historical, adapter: placeholder, isolation: not-qualified}
+scanner_releases:
+  - id: clamav-current-placeholder
+    product_id: clamav
+    product_version: null
+    engine_version: null
+    platform_ids: [linux-current]
+    runtime_profile_id: local-linux
+    worker_profile_id: local-adapter
+    qualification_status: not-installed-m0
+    capabilities: [file_scan, directory_scan, archive_scan, scan_only]
+    dependency_mode: local_engine
+    offline_definitions_supported: true
+    definition_snapshot_supported: true
+  - id: defender-current-placeholder
+    product_id: microsoft-defender
+    product_version: null
+    engine_version: null
+    platform_ids: [windows-current]
+    runtime_profile_id: windows-worker
+    worker_profile_id: vm-adapter
+    qualification_status: not-installed-m0
+    capabilities: [file_scan, directory_scan, archive_scan, scan_only]
+    dependency_mode: cloud_assisted
+    offline_definitions_supported: true
+    definition_snapshot_supported: true
+  - id: avast-188-xp-vista-placeholder
+    product_id: avast-188
+    product_version: '18.8'
+    engine_version: null
+    platform_ids: [windows-xp, windows-vista]
+    runtime_profile_id: historical-placeholder
+    worker_profile_id: unimplemented-historical
+    historical_mode: FINAL_HISTORICAL
+    qualification_status: qualification-incomplete-artifacts-preserved-externally
+    capabilities: [file_scan, scan_only]
+    dependency_mode: local_engine
+    offline_definitions_supported: true
+    definition_snapshot_supported: true
+  - id: sophos-sav-linux-9-placeholder
+    product_id: sophos-sav-linux
+    product_version: null
+    engine_version: null
+    platform_ids: [linux-current]
+    runtime_profile_id: historical-placeholder
+    worker_profile_id: unimplemented-historical
+    historical_mode: FINAL_HISTORICAL
+    qualification_status: qualification-incomplete-artifact-wanted
+    capabilities: [file_scan, scan_only]
+    dependency_mode: local_engine
+    offline_definitions_supported: null
+    definition_snapshot_supported: null
+  - id: fprot-linux-placeholder
+    product_id: fprot-linux
+    product_version: null
+    engine_version: null
+    platform_ids: [linux-current]
+    runtime_profile_id: historical-placeholder
+    worker_profile_id: unimplemented-historical
+    historical_mode: FINAL_HISTORICAL
+    qualification_status: qualification-incomplete-artifact-wanted
+    capabilities: [file_scan, scan_only]
+    dependency_mode: local_engine
+  - id: mcafee-dos-placeholder
+    product_id: mcafee-dos
+    product_version: null
+    engine_version: null
+    platform_ids: [dos]
+    runtime_profile_id: historical-placeholder
+    worker_profile_id: unimplemented-historical
+    historical_mode: FINAL_HISTORICAL
+    qualification_status: qualification-incomplete
+    capabilities: [file_scan, boot_sector_scan, scan_only]
+    dependency_mode: local_engine
+  - id: ibm-av-os2-placeholder
+    product_id: ibm-antivirus-os2
+    product_version: null
+    engine_version: null
+    platform_ids: [os2]
+    runtime_profile_id: historical-placeholder
+    worker_profile_id: unimplemented-historical
+    historical_mode: FINAL_HISTORICAL
+    qualification_status: qualification-incomplete-artifact-wanted
+    capabilities: [file_scan, scan_only]
+    dependency_mode: local_engine
+detector_releases:
+  - {id: yara-current-placeholder, product_id: yara, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: yara-x-current-placeholder, product_id: yara-x, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: loki-current-placeholder, product_id: loki, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: maldet-current-placeholder, product_id: maldet, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [file_scan, directory_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: chkrootkit-current-placeholder, product_id: chkrootkit, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+  - {id: rkhunter-current-placeholder, product_id: rkhunter, product_version: null, platform_ids: [linux-current], runtime_profile_id: local-linux, worker_profile_id: local-adapter, capabilities: [system_scan, scan_only], dependency_mode: local_engine, qualification_status: not-installed-m0}
+definition_sets:
+  - {id: avast-v18-external-placeholder, product_id: avast-188, definition_version: null, definition_date: null, compatible_engine_versions: ['18'], compatibility_status: externally-preserved-qualification-not-imported}
+

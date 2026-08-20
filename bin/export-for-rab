@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/local/lib/avbox-bootstrap/avbox-bootstrap.py export-for-rab "$@"

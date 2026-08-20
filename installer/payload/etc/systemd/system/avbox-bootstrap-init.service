@@ -1,0 +1,13 @@
+[Unit]
+Description=Initialize AVBox bootstrap preservation volume
+After=local-fs.target
+Before=qemu-guest-agent.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/avbox-bootstrap-init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

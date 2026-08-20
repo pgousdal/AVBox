@@ -1,0 +1,109 @@
+---
+- name: Assert Debian 13 target
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version == '13'
+    fail_msg: AVBox M0 provisioning supports Debian 13 only
+
+- name: Install application runtime dependencies only
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-venv
+      - b3sum
+    state: present
+    update_cache: true
+
+- name: Create AVBox group
+  ansible.builtin.group:
+    name: "{{ avbox_group }}"
+    system: true
+
+- name: Create AVBox service account
+  ansible.builtin.user:
+    name: "{{ avbox_user }}"
+    group: "{{ avbox_group }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ avbox_state_root }}"
+    create_home: false
+
+- name: Create AVBox state directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ avbox_user }}"
+    group: "{{ avbox_group }}"
+    mode: '0700'
+  loop:
+    - "{{ avbox_state_root }}"
+    - "{{ avbox_state_root }}/staging"
+    - "{{ avbox_state_root }}/jobs"
+    - "{{ avbox_state_root }}/quarantine"
+    - "{{ avbox_state_root }}/rab-export"
+
+- name: Create configuration directory
+  ansible.builtin.file:
+    path: "{{ avbox_config_root }}"
+    state: directory
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0750'
+
+- name: Copy AVBox source tree
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../"
+    dest: "{{ avbox_install_root }}/source/"
+    owner: root
+    group: root
+    mode: preserve
+  notify: Restart avbox
+
+- name: Create application virtual environment
+  ansible.builtin.command:
+    cmd: "python3 -m venv {{ avbox_install_root }}/venv"
+    creates: "{{ avbox_install_root }}/venv/bin/python"
+
+- name: Install AVBox package
+  ansible.builtin.pip:
+    name: "{{ avbox_install_root }}/source"
+    virtualenv: "{{ avbox_install_root }}/venv"
+  notify: Restart avbox
+
+- name: Install production configuration
+  ansible.builtin.template:
+    src: avbox.yaml.j2
+    dest: "{{ avbox_config_root }}/avbox.yaml"
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0640'
+  notify: Restart avbox
+
+- name: Install registry
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../config/registry/registry.yaml"
+    dest: "{{ avbox_config_root }}/registry.yaml"
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0640'
+  notify: Restart avbox
+
+- name: Install hardened systemd unit
+  ansible.builtin.template:
+    src: avbox.service.j2
+    dest: /etc/systemd/system/avbox.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart avbox
+
+- name: Enable and start AVBox
+  ansible.builtin.systemd_service:
+    name: avbox
+    enabled: true
+    state: started
+    daemon_reload: true
+

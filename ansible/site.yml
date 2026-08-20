@@ -1,0 +1,7 @@
+---
+- name: Provision AVBox M0 on Debian 13
+  hosts: avbox
+  become: true
+  roles:
+    - avbox
+

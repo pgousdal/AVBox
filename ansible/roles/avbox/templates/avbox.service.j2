@@ -1,0 +1,33 @@
+[Unit]
+Description=AVBox control plane
+After=network.target
+
+[Service]
+Type=simple
+User={{ avbox_user }}
+Group={{ avbox_group }}
+Environment=AVBOX_CONFIG={{ avbox_config_root }}/avbox.yaml
+ExecStart={{ avbox_install_root }}/venv/bin/uvicorn avbox.api.app:app --host {{ avbox_api_host }} --port {{ avbox_api_port }}
+Restart=on-failure
+RuntimeDirectory=avbox
+StateDirectory=avbox
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ avbox_state_root }}
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictRealtime=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+PrivateDevices=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
+

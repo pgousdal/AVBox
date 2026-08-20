@@ -1,0 +1,3 @@
+[avbox]
+localhost ansible_connection=local
+

@@ -1,0 +1,34 @@
+paths:
+  state: /tmp/avbox-m0/state
+  staging: /tmp/avbox-m0/staging
+  jobs: /tmp/avbox-m0/jobs
+  quarantine: /tmp/avbox-m0/quarantine
+  registry: config/registry/registry.yaml
+storage:
+  sqlite_path: /tmp/avbox-m0/state/avbox.db
+  clean_bytes_retention_hours: 0
+  minimum_free_gib: 5
+quarantine:
+  enabled: true
+  content_addressed: true
+  immutable_after_admission: true
+runtime:
+  worker_concurrency: 2
+  default_timeout_seconds: 300
+api:
+  host: 127.0.0.1
+  port: 8080
+  explicit_lan_exposure: false
+web:
+  enabled: true
+logging:
+  level: INFO
+  json: true
+preservation:
+  external_manifests_enabled: true
+  bootstrap_import_enabled: true
+rab:
+  enabled: false
+  endpoint: null
+  export_directory: /tmp/avbox-m0/rab-export
+

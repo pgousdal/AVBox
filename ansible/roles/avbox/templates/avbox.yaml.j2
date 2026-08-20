@@ -1,0 +1,21 @@
+paths:
+  state: {{ avbox_state_root }}
+  staging: {{ avbox_state_root }}/staging
+  jobs: {{ avbox_state_root }}/jobs
+  quarantine: {{ avbox_state_root }}/quarantine
+  registry: {{ avbox_config_root }}/registry.yaml
+storage:
+  sqlite_path: {{ avbox_state_root }}/avbox.db
+  clean_bytes_retention_hours: 0
+  minimum_free_gib: 5
+quarantine: {enabled: true, content_addressed: true, immutable_after_admission: true}
+runtime: {worker_concurrency: 2, default_timeout_seconds: 300}
+api:
+  host: {{ avbox_api_host }}
+  port: {{ avbox_api_port }}
+  explicit_lan_exposure: false
+web: {enabled: true}
+logging: {level: INFO, json: true}
+preservation: {external_manifests_enabled: true, bootstrap_import_enabled: true}
+rab: {enabled: false, endpoint: null, export_directory: '{{ avbox_state_root }}/rab-export'}
+

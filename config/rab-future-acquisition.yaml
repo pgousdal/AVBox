@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "purpose": "Future RAB acquisition planning; entries without an exact official URL must not be downloaded by guessing URLs.",
+  "generated_utc": "2026-08-20T00:00:00Z",
+  "defaults": {"redistribution_rights": "unknown"},
+  "open_source_timeline_plans": [
+    {"project":"ClamAV","classification":"antivirus_engine","authoritative_release_index":"https://github.com/Cisco-Talos/clamav/releases","definition_documentation":"https://docs.clamav.net/manual/Signatures.html","plan":"Capture signed source releases, release metadata, CVD format documentation and dated main/daily/bytecode database snapshots at RAB-defined milestones; do not mirror every CI artifact."},
+    {"project":"YARA","classification":"rule_engine","authoritative_release_index":"https://github.com/VirusTotal/yara/releases","plan":"Capture signed/tagged source releases and separately version rule repositories with their own provenance."},
+    {"project":"YARA-X","classification":"rule_engine","authoritative_release_index":"https://github.com/VirusTotal/yara-x/releases","plan":"Capture tagged source releases and release assets; preserve rules independently."},
+    {"project":"LOKI","classification":"ioc_detector","authoritative_release_index":"https://github.com/Neo23x0/Loki/releases","plan":"Capture source/release bundles and pin the separately updated signature repository per acquisition event."},
+    {"project":"Linux Malware Detect","classification":"malware_detector","authoritative_release_index":"https://github.com/rfxn/linux-malware-detect/releases","plan":"Capture tagged source releases and dated signature snapshots separately."},
+    {"project":"chkrootkit","classification":"system_detector","authoritative_release_index":"https://chkrootkit.org/","plan":"Capture each upstream release tarball plus the release page and any upstream checksum/signature."},
+    {"project":"rkhunter","classification":"system_detector","authoritative_release_index":"https://sourceforge.net/projects/rkhunter/files/","plan":"Capture upstream releases and separately preserve mutable data-file updates."}
+  ],
+  "artifact_wanted": [
+    {"status":"PRESERVE_NOW","vendor":"McAfee / Trellix","identity":"future rotating XDAT/SuperDAT snapshots after preserved XDAT 11880","known_missing":["11872xdat.exe"],"platform":["windows"],"notes":"XDAT 11880 is preserved. Resolve future filenames only from a fresh official response; qualify individual engine/platform compatibility separately."},
+    {"status":"ARTIFACT_WANTED","vendor":"FRISK","identity":"final F-PROT for DOS, Windows 3.x, OS/2 and Linux distributions plus final compatible signatures","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"IBM","identity":"IBM AntiVirus OS/2 1.x, 2.0-2.5 and 3.0 original media/updates; AV23x and AV24x identifiers documented","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"McAfee","identity":"VirusScan for OS/2 4.0.2 and 4.0.4 media, engine and documented compatible DAT","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"Dr Solomon's","identity":"Anti-Virus Toolkit for OS/2 7.74 original media and final compatible definitions","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"Symantec","identity":"Norton AntiVirus for OS/2 5.02 and 5.03.69 media and final compatible definitions","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"Doctor Web","identity":"versioned DOS/OS2 distribution, engine and compatible VDB set obtainable without account/license","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"Sophos","identity":"SAV Linux 7.6.7, 9.16.x, 9.17.4 and final 32-bit package with matching IDE set","url":null},
+    {"status":"ARTIFACT_WANTED","vendor":"Bitdefender","identity":"Bitdefender Security for XP/Vista 2017 installer and compatible weekly.exe","known_dead_url":"http://download.bitdefender.com/updates/bitdefender_2010/x86/weekly.exe"},
+    {"status":"ARTIFACT_WANTED","vendor":"AVG","identity":"distinct AVG 18.8 offline definitions if primary compatibility evidence is found","url":null,"notes":"Avast vps18 package compatibility remains unverified."}
+  ]
+}
