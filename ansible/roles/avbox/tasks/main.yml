@@ -51,10 +51,31 @@
     group: "{{ avbox_group }}"
     mode: '0750'
 
-- name: Copy AVBox source tree
+- name: Create application source directory
+  ansible.builtin.file:
+    path: "{{ avbox_install_root }}/source"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy AVBox package metadata
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../"
-    dest: "{{ avbox_install_root }}/source/"
+    src: "{{ playbook_dir }}/../{{ item }}"
+    dest: "{{ avbox_install_root }}/source/{{ item }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - pyproject.toml
+    - README.md
+    - LICENSE
+  notify: Restart avbox
+
+- name: Copy AVBox Python package
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../src/"
+    dest: "{{ avbox_install_root }}/source/src/"
     owner: root
     group: root
     mode: preserve
@@ -106,4 +127,3 @@
     enabled: true
     state: started
     daemon_reload: true
-
