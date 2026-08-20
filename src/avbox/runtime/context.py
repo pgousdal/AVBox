@@ -7,6 +7,7 @@ from pathlib import Path
 from avbox.application import JobService, ScanService
 from avbox.config import AppSettings
 from avbox.preservation import PreservationService
+from avbox.protocol import RABService
 from avbox.registry import RegistryService
 from avbox.scanners.base import ScannerAdapter, SystemDetectorAdapter
 from avbox.scanners.factory import build_adapters
@@ -20,6 +21,7 @@ class Context:
     adapters: dict[str, ScannerAdapter] = field(default_factory=dict)
     system_adapters: dict[str, SystemDetectorAdapter] = field(default_factory=dict)
     scans: ScanService | None = None
+    rab_protocol: RABService | None = None
 
 
 def build_context(config_path: Path | None = None) -> Context:
@@ -36,4 +38,10 @@ def build_context(config_path: Path | None = None) -> Context:
         quarantine=PreservationService(settings.paths.quarantine),
         maximum_file_bytes=settings.runtime.maximum_file_bytes,
     )
-    return Context(settings, registry, jobs, adapters, system_adapters, scans)
+    rab_protocol = RABService(
+        settings=settings.rab_protocol,
+        jobs=jobs,
+        scans=scans,
+        raw_output_root=settings.paths.raw_output,
+    )
+    return Context(settings, registry, jobs, adapters, system_adapters, scans, rab_protocol)

@@ -75,6 +75,16 @@ class RABSettings(BaseModel):
     export_directory: Path
 
 
+class RABProtocolSettings(BaseModel):
+    enabled: bool = False
+    credential_file: Path
+    profiles_file: Path
+    upload_root: Path
+    maximum_upload_bytes: int = Field(ge=1, default=1024 * 1024 * 1024)
+    queue_capacity: int = Field(ge=1, le=10000, default=16)
+    worker_concurrency: int = Field(ge=1, le=16, default=1)
+
+
 class AppSettings(BaseModel):
     paths: PathSettings
     storage: StorageSettings
@@ -85,6 +95,7 @@ class AppSettings(BaseModel):
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     preservation: PreservationSettings = Field(default_factory=PreservationSettings)
     rab: RABSettings
+    rab_protocol: RABProtocolSettings
 
     @classmethod
     def from_yaml(cls, path: Path) -> AppSettings:

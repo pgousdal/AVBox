@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "avbox"
-version = "0.2.0"
+version = "0.3.0"
 description = "Private, scan-only, multi-engine malware analysis appliance"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,14 +12,16 @@ license = {file = "LICENSE"}
 dependencies = [
   "blake3>=1.0,<2",
   "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
   "pydantic>=2.10,<3",
   "pydantic-settings>=2.7,<3",
+  "python-multipart>=0.0.20,<1",
   "PyYAML>=6.0,<7",
   "uvicorn>=0.34,<1",
 ]
 
 [project.optional-dependencies]
-dev = ["build>=1.2", "httpx>=0.28", "mypy>=1.14", "pytest>=8.3", "ruff>=0.9", "types-PyYAML>=6.0"]
+dev = ["build>=1.2", "mypy>=1.14", "pytest>=8.3", "ruff>=0.9", "types-PyYAML>=6.0"]
 
 [project.scripts]
 avbox = "avbox.cli:main"

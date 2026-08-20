@@ -18,7 +18,7 @@ quarantine:
 runtime:
   worker_concurrency: 2
   default_timeout_seconds: 300
-  memory_limit_mib: 1024
+  memory_limit_mib: 1536
   maximum_file_bytes: 1073741824
   use_bubblewrap: true
   default_file_detectors: [clamav, yara, yara-x, loki, maldet]
@@ -38,3 +38,11 @@ rab:
   enabled: false
   endpoint: null
   export_directory: /tmp/avbox-m0/rab-export
+rab_protocol:
+  enabled: false
+  credential_file: /tmp/avbox-m1/rab-clients.json
+  profiles_file: config/analysis-profiles.yaml
+  upload_root: /tmp/avbox-m1/rab-uploads
+  maximum_upload_bytes: 1073741824
+  queue_capacity: 16
+  worker_concurrency: 1

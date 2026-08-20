@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import shutil
 import sys
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
+import httpx
 from pydantic import ValidationError
 
 from avbox.application import ArtifactService
@@ -42,6 +46,17 @@ def parser() -> argparse.ArgumentParser:
     scan.add_argument("--scanner", action="append", dest="scanners")
     system_scan = sub.add_parser("system-scan")
     system_scan.add_argument("--scanner", action="append", dest="scanners")
+    rab = sub.add_parser("rab")
+    rab.add_argument("--url", default=os.environ.get("AVBOX_RAB_URL", "http://127.0.0.1:8080"))
+    rab_sub = rab.add_subparsers(dest="rab_command", required=True)
+    rab_sub.add_parser("capabilities")
+    rab_job = rab_sub.add_parser("job")
+    rab_job.add_argument("job_id")
+    rab_submit = rab_sub.add_parser("submit")
+    rab_submit.add_argument("file", type=Path)
+    rab_submit.add_argument("--profile", default="security-default@1")
+    rab_submit.add_argument("--client-request-id", default=None)
+    rab_submit.add_argument("--idempotency-key", default=None)
     return root
 
 
@@ -160,6 +175,43 @@ def main(argv: list[str] | None = None) -> int:
         results = context.scans.system_scan(selected)
         print(json.dumps([item.model_dump(mode="json") for item in results], indent=2))
         return 0
+    if args.command == "rab":
+        token = os.environ.get("AVBOX_RAB_TOKEN")
+        if not token:
+            print("AVBOX_RAB_TOKEN is required", file=sys.stderr)
+            return 2
+        headers = {"Authorization": f"Bearer {token}"}
+        base = args.url.rstrip("/") + "/api/v1/rab"
+        with httpx.Client(timeout=30) as http:
+            if args.rab_command == "capabilities":
+                response = http.get(base + "/capabilities", headers=headers)
+            elif args.rab_command == "job":
+                response = http.get(base + f"/analysis-jobs/{args.job_id}", headers=headers)
+            else:
+                request_id = args.client_request_id or str(uuid.uuid4())
+                idempotency = args.idempotency_key or request_id
+                headers["Idempotency-Key"] = idempotency
+                with args.file.open("rb") as stream:
+                    expected = hashlib.sha256()
+                    for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                        expected.update(chunk)
+                    stream.seek(0)
+                    response = http.post(
+                        base + "/analysis-jobs",
+                        headers=headers,
+                        data={
+                            "client_request_id": request_id,
+                            "expected_sha256": expected.hexdigest(),
+                            "profile": args.profile,
+                            "protocol_version": "1",
+                            "filename": args.file.name,
+                        },
+                        files={
+                            "object_bytes": (args.file.name, stream, "application/octet-stream")
+                        },
+                    )
+        print(json.dumps(response.json(), indent=2))
+        return 0 if response.status_code < 400 else 1
     return 2
 
 

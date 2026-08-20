@@ -1,3 +1,5 @@
 [avbox]
 localhost ansible_connection=local
 
+# Enable only with an external controller-side secret file:
+# avbox_rab_protocol_enabled=true avbox_rab_token_file=/secure/path/rab-token

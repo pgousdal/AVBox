@@ -6,4 +6,8 @@ avbox_config_root: /etc/avbox
 avbox_state_root: /var/lib/avbox
 avbox_api_host: 127.0.0.1
 avbox_api_port: 8080
-
+avbox_rab_protocol_enabled: false
+avbox_rab_token_file: ''
+avbox_rab_queue_capacity: 16
+avbox_rab_worker_concurrency: 1
+avbox_rab_maximum_upload_bytes: 1073741824

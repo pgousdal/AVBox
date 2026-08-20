@@ -7,3 +7,5 @@ Business logic lives in application services shared by CLI and API. YAML is cata
 M1's `ScanService` selects only applicable file adapters. `SystemDetectorAdapter` is a separate contract for chkrootkit/rkhunter host inspection. Scanner execution remains replaceable and routes, templates, and CLI contain no detector-specific parsing.
 
 Operational versions, probe status, definition state, and scan results are runtime data. Product identity, declared capabilities, installation provenance, and qualification intent remain Git-versioned YAML. Existing bootstrap-rescue tooling remains an external preservation producer, not an AVBox scanner or dependency.
+
+M1.1 adds a generic protocol boundary: streamed intake and authentication in the API plane, versioned YAML analysis profiles, the existing persisted `ScanJob`, a bounded local worker queue, and semantic result mapping. It does not duplicate the job state machine or move profile/catalog truth into SQLite.

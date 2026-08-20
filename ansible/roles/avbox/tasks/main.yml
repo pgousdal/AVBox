@@ -50,6 +50,7 @@
     - "{{ avbox_state_root }}/quarantine"
     - "{{ avbox_state_root }}/scratch"
     - "{{ avbox_state_root }}/raw-output"
+    - "{{ avbox_state_root }}/rab-uploads"
     - "{{ avbox_state_root }}/rab-export"
 
 - name: Create controlled rules directory
@@ -123,10 +124,37 @@
     mode: '0640'
   notify: Restart avbox
 
+- name: Require an external RAB token file when protocol is enabled
+  ansible.builtin.assert:
+    that:
+      - avbox_rab_token_file | length > 0
+    fail_msg: Set avbox_rab_token_file to a controller-side mode-0600 token file
+  when: avbox_rab_protocol_enabled | bool
+
+- name: Install RAB client credential outside Git
+  ansible.builtin.copy:
+    content: "{{ {'clients': [{'client_id': 'rab', 'token': lookup('file', avbox_rab_token_file), 'scopes': ['analysis.submit', 'analysis.read', 'capabilities.read']}]} | to_nice_json }}\n"
+    dest: "{{ avbox_config_root }}/rab-clients.json"
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0640'
+  no_log: true
+  notify: Restart avbox
+  when: avbox_rab_protocol_enabled | bool
+
 - name: Install registry
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../config/registry/registry.yaml"
     dest: "{{ avbox_config_root }}/registry.yaml"
+    owner: root
+    group: "{{ avbox_group }}"
+    mode: '0640'
+  notify: Restart avbox
+
+- name: Install versioned analysis profiles
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../config/analysis-profiles.yaml"
+    dest: "{{ avbox_config_root }}/analysis-profiles.yaml"
     owner: root
     group: "{{ avbox_group }}"
     mode: '0640'

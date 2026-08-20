@@ -19,6 +19,7 @@ class CommandResult:
     duration_seconds: float
     timed_out: bool = False
     isolated: bool = False
+    isolation_failed: bool = False
 
 
 class IsolatedCommandRunner:
@@ -105,6 +106,11 @@ class IsolatedCommandRunner:
             completed.stderr,
             time.monotonic() - started,
             isolated=isolated,
+            isolation_failed=(
+                isolated
+                and completed.returncode != 0
+                and completed.stderr.lstrip().startswith("bwrap:")
+            ),
         )
 
 

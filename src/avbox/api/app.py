@@ -1,19 +1,42 @@
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Any, cast
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
+from avbox.protocol import RABProtocolError
 from avbox.runtime import Context, build_context
+
+from .rab import protocol_error_handler
+from .rab import router as rab_router
 
 
 def create_app(context: Context | None = None) -> FastAPI:
     ctx = context or build_context()
-    app = FastAPI(title="AVBox", version="0.2.0", docs_url="/api/docs", redoc_url=None)
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        yield
+        if ctx.rab_protocol is not None:
+            ctx.rab_protocol.shutdown()
+
+    app = FastAPI(
+        title="AVBox",
+        version="0.3.0",
+        docs_url="/api/docs",
+        redoc_url=None,
+        lifespan=lifespan,
+    )
     app.state.context = ctx
+    app.add_exception_handler(RABProtocolError, cast(Any, protocol_error_handler))
+    app.include_router(rab_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "milestone": "M1", "scanner_runtime": "enabled"}
+        return {"status": "ok", "milestone": "M1.1", "scanner_runtime": "enabled"}
 
     @app.get("/api/v1/platforms")
     async def platforms() -> list[dict[str, object]]:
@@ -76,6 +99,8 @@ def create_app(context: Context | None = None) -> FastAPI:
             if quarantine_root.exists()
             else 0
         )
+        rab_enabled = bool(ctx.rab_protocol and ctx.rab_protocol.settings.enabled)
+        rab_queued = ctx.rab_protocol.queue.qsize() if ctx.rab_protocol else 0
         adapters = list(ctx.adapters.items()) + list(ctx.system_adapters.items())
         persisted = ctx.jobs.scanner_statuses()
         scanner_rows = "".join(
@@ -85,12 +110,14 @@ def create_app(context: Context | None = None) -> FastAPI:
             f"<td>{adapter.probe().version or 'unknown'}</td></tr>"
             for name, adapter in adapters
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1 Current Linux</dd>
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.1</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.1 RAB Protocol v1</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>
 <dt>Quarantine count</dt><dd>{quarantine_count}</dd></dl>
+<dl><dt>RAB Protocol v1 enabled</dt><dd>{rab_enabled}</dd>
+<dt>RAB queued jobs</dt><dd>{rab_queued}</dd></dl>
 <table><thead><tr><th>Detector</th><th>Class</th><th>Runtime state</th><th>Version</th></tr></thead>
 <tbody>{scanner_rows}</tbody></table></body></html>"""
 

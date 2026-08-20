@@ -11,6 +11,23 @@ from .common import (
     Verdict,
 )
 from .jobs import JobStatus, ScanJob, ScannerResult
+from .protocol import (
+    PROTOCOL_VERSION,
+    AnalysisJobAccepted,
+    AnalysisJobStatus,
+    AnalysisProfile,
+    AnalysisResultEnvelope,
+    AnalyzerResult,
+    Assessment,
+    ErrorCode,
+    Finding,
+    ObjectIdentity,
+    ObjectRelationship,
+    Observation,
+    PreservationContext,
+    ProtocolError,
+    RawOutputDescriptor,
+)
 from .runtime import ScannerRuntimeStatus
 
 __all__ = [
@@ -29,6 +46,21 @@ __all__ = [
     "ScannerClass",
     "ScannerResult",
     "ScannerRuntimeStatus",
+    "PROTOCOL_VERSION",
+    "AnalysisJobAccepted",
+    "AnalysisJobStatus",
+    "AnalysisProfile",
+    "AnalysisResultEnvelope",
+    "AnalyzerResult",
+    "Assessment",
+    "ErrorCode",
+    "Finding",
+    "ObjectIdentity",
+    "ObjectRelationship",
+    "Observation",
+    "PreservationContext",
+    "ProtocolError",
+    "RawOutputDescriptor",
     "ScanPolicy",
     "Verdict",
 ]

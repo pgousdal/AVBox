@@ -4,6 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
+KillMode=mixed
+TimeoutStopSec=360
 User={{ avbox_user }}
 Group={{ avbox_group }}
 Environment=AVBOX_CONFIG={{ avbox_config_root }}/avbox.yaml
@@ -21,7 +23,7 @@ ReadWritePaths={{ avbox_state_root }}
 RestrictSUIDSGID=true
 LockPersonality=true
 RestrictRealtime=true
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 MemoryMax=2G
 TasksMax=256
 LimitCORE=0

@@ -165,6 +165,10 @@ class ClamAVAdapter(CommandFileAdapter):
 
     def normalize(self, native_result: object) -> tuple[Verdict, ScannerResult]:
         native = _command(native_result)
+        if native.isolation_failed:
+            return Verdict.ERROR, self.result(
+                native, Verdict.ERROR, "isolation-failed", None, FindingKind.OPERATIONAL_ERROR
+            )
         if native.timed_out:
             return Verdict.ERROR, self.result(
                 native, Verdict.ERROR, "timeout", None, FindingKind.OPERATIONAL_ERROR
@@ -216,6 +220,10 @@ class YaraAdapter(CommandFileAdapter):
 
     def normalize(self, native_result: object) -> tuple[Verdict, ScannerResult]:
         native = _command(native_result)
+        if native.isolation_failed:
+            return Verdict.ERROR, self.result(
+                native, Verdict.ERROR, "isolation-failed", None, FindingKind.OPERATIONAL_ERROR
+            )
         if native.timed_out or native.exit_code not in {0, 1}:
             return Verdict.ERROR, self.result(
                 native, Verdict.ERROR, "scanner-error", None, FindingKind.OPERATIONAL_ERROR
@@ -251,6 +259,10 @@ class LokiAdapter(CommandFileAdapter):
 
     def normalize(self, native_result: object) -> tuple[Verdict, ScannerResult]:
         native = _command(native_result)
+        if native.isolation_failed:
+            return Verdict.ERROR, self.result(
+                native, Verdict.ERROR, "isolation-failed", None, FindingKind.OPERATIONAL_ERROR
+            )
         text = native.stdout + native.stderr
         if native.timed_out or native.exit_code not in {0, 1}:
             return Verdict.ERROR, self.result(
@@ -276,6 +288,10 @@ class MaldetAdapter(CommandFileAdapter):
 
     def normalize(self, native_result: object) -> tuple[Verdict, ScannerResult]:
         native = _command(native_result)
+        if native.isolation_failed:
+            return Verdict.ERROR, self.result(
+                native, Verdict.ERROR, "isolation-failed", None, FindingKind.OPERATIONAL_ERROR
+            )
         text = native.stdout + native.stderr
         if native.timed_out or native.exit_code not in {0, 1}:
             return Verdict.ERROR, self.result(

@@ -15,7 +15,7 @@ quarantine: {enabled: true, content_addressed: true, immutable_after_admission: 
 runtime:
   worker_concurrency: 2
   default_timeout_seconds: 300
-  memory_limit_mib: 1024
+  memory_limit_mib: 1536
   maximum_file_bytes: 1073741824
   use_bubblewrap: true
   default_file_detectors: [clamav, yara, yara-x, loki, maldet]
@@ -27,3 +27,11 @@ web: {enabled: true}
 logging: {level: INFO, json: true}
 preservation: {external_manifests_enabled: true, bootstrap_import_enabled: true}
 rab: {enabled: false, endpoint: null, export_directory: '{{ avbox_state_root }}/rab-export'}
+rab_protocol:
+  enabled: {{ avbox_rab_protocol_enabled | bool | lower }}
+  credential_file: {{ avbox_config_root }}/rab-clients.json
+  profiles_file: {{ avbox_config_root }}/analysis-profiles.yaml
+  upload_root: {{ avbox_state_root }}/rab-uploads
+  maximum_upload_bytes: {{ avbox_rab_maximum_upload_bytes }}
+  queue_capacity: {{ avbox_rab_queue_capacity }}
+  worker_concurrency: {{ avbox_rab_worker_concurrency }}

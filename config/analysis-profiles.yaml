@@ -1,0 +1,7 @@
+schema_version: 1
+profiles:
+  - id: security-default
+    version: 1
+    analyzers: [clamav, yara]
+    capabilities: [security_detection]
+    enabled: true

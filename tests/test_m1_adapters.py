@@ -7,10 +7,18 @@ from pathlib import Path
 import pytest
 
 from avbox.application import JobService, ScanService, aggregate_verdict
-from avbox.models import Capability, FindingKind, ScannerClass, ScannerResult, Verdict
+from avbox.models import (
+    Capability,
+    FindingKind,
+    QualificationState,
+    ScannerClass,
+    ScannerResult,
+    Verdict,
+)
 from avbox.preservation import PreservationService
 from avbox.scanners.adapters import (
     ClamAVAdapter,
+    CommandFileAdapter,
     LokiAdapter,
     MaldetAdapter,
     RootkitAdapter,
@@ -22,9 +30,15 @@ from avbox.scanners.command import CommandResult, IsolatedCommandRunner, store_r
 
 
 def native(
-    stdout: str = "", stderr: str = "", code: int = 0, timeout: bool = False
+    stdout: str = "",
+    stderr: str = "",
+    code: int = 0,
+    timeout: bool = False,
+    isolation_failed: bool = False,
 ) -> CommandResult:
-    return CommandResult(("detector",), code, stdout, stderr, 0.01, timeout, True)
+    return CommandResult(
+        ("detector",), code, stdout, stderr, 0.01, timeout, True, isolation_failed
+    )
 
 
 def result(verdict: Verdict) -> ScannerResult:
@@ -109,6 +123,23 @@ def test_loki_and_maldet_normalization(tmp_path: Path) -> None:
     assert loki.executable == "loki.py"
 
 
+@pytest.mark.parametrize(
+    "adapter_type", [ClamAVAdapter, YaraAdapter, YaraXAdapter, LokiAdapter, MaldetAdapter]
+)
+def test_isolation_failure_can_never_be_a_detection_or_clean(
+    tmp_path: Path, adapter_type: type[CommandFileAdapter]
+) -> None:
+    rules = tmp_path / "rules.yar"
+    rules.write_text("rule harmless { condition: true }", encoding="utf-8")
+    adapter = adapter_type(raw_output_root=tmp_path / "raw", timeout=1, rules=rules)
+    verdict, scanner_result = adapter.normalize(
+        native(stderr="bwrap: sandbox construction failed", code=1, isolation_failed=True)
+    )
+    assert verdict == Verdict.ERROR
+    assert scanner_result.native_verdict == "isolation-failed"
+    assert scanner_result.finding_kind == FindingKind.OPERATIONAL_ERROR
+
+
 def test_system_warning_is_ambiguous(tmp_path: Path) -> None:
     adapter = RootkitAdapter("chkrootkit", "chkrootkit", tmp_path, 1)
     verdict, warning = adapter.normalize(native("eth0: PACKET SNIFFER"))
@@ -122,7 +153,7 @@ class FakeAdapter(ScannerAdapter):
     scanner_class = ScannerClass.ANTIVIRUS_ENGINE
 
     def probe(self) -> ProbeResult:
-        return ProbeResult(True, "/fake")
+        return ProbeResult(True, "/fake", QualificationState.PROBED)
 
     def capabilities(self) -> set[Capability]:
         return set()

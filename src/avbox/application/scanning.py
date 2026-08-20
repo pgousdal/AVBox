@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from avbox.models import (
+    InputArtifact,
     JobStatus,
     QualificationState,
     ScanJob,
@@ -69,7 +70,30 @@ class ScanService:
         self.jobs.save(job)
         self.jobs.transition(job, JobStatus.STAGED)
         self.jobs.transition(job, JobStatus.QUEUED)
+        return self.execute_queued(job, source)
+
+    def create_queued(
+        self, *, artifact: InputArtifact, source_label: str, requested: list[str]
+    ) -> ScanJob:
+        selected = [name for name in requested if name in self.adapters]
+        job = ScanJob(
+            source=source_label,
+            input_artifact=artifact,
+            requested_scanners=requested,
+            applicable_scanners=selected,
+            detected_media_type="ordinary-file",
+        )
+        self.jobs.save(job)
+        self.jobs.transition(job, JobStatus.STAGED)
+        self.jobs.transition(job, JobStatus.QUEUED)
+        return job
+
+    def execute_queued(self, job: ScanJob, source: Path) -> ScanJob:
+        if job.status != JobStatus.QUEUED:
+            raise ValueError("job must be QUEUED before execution")
         self.jobs.transition(job, JobStatus.RUNNING)
+        artifact = job.input_artifact
+        requested = job.requested_scanners
         original = (artifact.byte_size, artifact.hashes.sha256)
         try:
             for name in requested:
@@ -78,13 +102,19 @@ class ScanService:
                     job.errors.append(f"{name}: unavailable or not applicable to ordinary files")
                     continue
                 probe = adapter.probe()
-                if not probe.available:
+                if not probe.available or probe.state != QualificationState.PROBED:
                     job.errors.append(f"{name}: {probe.detail}")
                     continue
+                previous_status = self.jobs.scanner_statuses().get(name)
                 self.jobs.save_scanner_status(
                     ScannerRuntimeStatus(
                         scanner_id=name,
-                        qualification_state=QualificationState.PROBED,
+                        qualification_state=(
+                            QualificationState.QUALIFIED
+                            if previous_status
+                            and previous_status.qualification_state == QualificationState.QUALIFIED
+                            else QualificationState.PROBED
+                        ),
                         installed_version=probe.version,
                         definition_state=probe.definition_state or {},
                         last_probe=datetime.now(UTC),
@@ -97,6 +127,9 @@ class ScanService:
                 try:
                     _, result = adapter.run_prepared(prepared)
                     result.selected_reason = "requested and runtime-capable for ordinary-file"
+                    result.qualification_state = (
+                        previous_status.qualification_state if previous_status else probe.state
+                    )
                     job.scanner_results.append(result)
                     job.raw_output_refs.append(result.raw_output_ref)
                     self.jobs.save_scanner_status(
