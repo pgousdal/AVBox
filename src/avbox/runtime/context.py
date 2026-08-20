@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from avbox.analyzers import GenericAnalyzer, build_generic_analyzers
 from avbox.application import JobService, ScanService
 from avbox.config import AppSettings
 from avbox.preservation import PreservationService
@@ -22,6 +23,7 @@ class Context:
     system_adapters: dict[str, SystemDetectorAdapter] = field(default_factory=dict)
     scans: ScanService | None = None
     rab_protocol: RABService | None = None
+    generic_analyzers: dict[str, GenericAnalyzer] = field(default_factory=dict)
 
 
 def build_context(config_path: Path | None = None) -> Context:
@@ -30,10 +32,12 @@ def build_context(config_path: Path | None = None) -> Context:
     registry = RegistryService(settings.paths.registry)
     jobs = JobService(settings.storage.sqlite_path)
     adapters, system_adapters = build_adapters(settings)
+    generic_analyzers = build_generic_analyzers(settings)
     scans = ScanService(
         jobs=jobs,
         adapters=adapters,
         system_adapters=system_adapters,
+        generic_analyzers=generic_analyzers,
         staging=settings.paths.staging,
         quarantine=PreservationService(settings.paths.quarantine),
         maximum_file_bytes=settings.runtime.maximum_file_bytes,
@@ -44,4 +48,13 @@ def build_context(config_path: Path | None = None) -> Context:
         scans=scans,
         raw_output_root=settings.paths.raw_output,
     )
-    return Context(settings, registry, jobs, adapters, system_adapters, scans, rab_protocol)
+    return Context(
+        settings=settings,
+        registry=registry,
+        jobs=jobs,
+        adapters=adapters,
+        system_adapters=system_adapters,
+        scans=scans,
+        rab_protocol=rab_protocol,
+        generic_analyzers=generic_analyzers,
+    )

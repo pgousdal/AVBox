@@ -25,6 +25,7 @@ class InputArtifact(BaseModel):
     hashes: Hashes
     byte_size: int = Field(ge=0)
     filename: str
+    submitted_filename: str | None = None
     media_type: str
     source: str
     submitted_at: datetime

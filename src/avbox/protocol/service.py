@@ -7,6 +7,7 @@ import logging
 import os
 import queue
 import threading
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -150,6 +151,17 @@ class RABService:
             "protocol_versions": ["1"],
             "profiles": [profile.qualified_id for profile in self.profiles()],
             "qualified_object_analyzers": qualified,
+            "qualified_generic_analyzers": sorted(
+                name
+                for name in self.scans.generic_analyzers
+                if name in installed
+                and installed[name].qualification_state == QualificationState.QUALIFIED
+            ),
+            "available_generic_analyzers": sorted(
+                name
+                for name, analyzer in self.scans.generic_analyzers.items()
+                if analyzer.probe().available
+            ),
             "maximum_upload_bytes": self.settings.maximum_upload_bytes,
             "submission_modes": ["byte-upload", "external-reference-metadata-only"],
             "reference_resolution": "NOT_IMPLEMENTED",
@@ -230,9 +242,7 @@ class RABService:
                 unavailable = [
                     analyzer
                     for analyzer in profile.analyzers
-                    if analyzer not in self.scans.adapters
-                    or analyzer not in runtime
-                    or runtime[analyzer].qualification_state != QualificationState.QUALIFIED
+                    if not self._analyzer_available(analyzer, runtime)
                 ]
                 if unavailable:
                     raise RABProtocolError(
@@ -259,6 +269,7 @@ class RABService:
                     ),
                     byte_size=size,
                     filename=safe_filename or "submitted-object",
+                    submitted_filename=(filename[:1024] if filename else None),
                     media_type=media_type or "application/octet-stream",
                     source=f"rab:{client.client_id}",
                     submitted_at=datetime.now(UTC),
@@ -343,8 +354,12 @@ class RABService:
         if not job or not record:
             raise RABProtocolError(404, ErrorCode.NOT_FOUND, "analysis job was not found")
         artifact = job.input_artifact
-        analyzers = [self._map_result(item) for item in job.scanner_results]
+        analyzers = list(job.analyzer_results) + [
+            self._map_result(item) for item in job.scanner_results
+        ]
         findings = [finding for analyzer in analyzers for finding in analyzer.findings]
+        observations = [value for analyzer in analyzers for value in analyzer.observations]
+        assessments = [value for analyzer in analyzers for value in analyzer.assessments]
         analyzer_starts = [item.started_at for item in analyzers if item.started_at is not None]
         return AnalysisResultEnvelope(
             job_id=job.job_id,
@@ -370,8 +385,10 @@ class RABService:
                     analyzer_id="avbox.identity",
                     value={"sha256": artifact.hashes.sha256, "size": artifact.byte_size},
                 )
-            ],
+            ]
+            + observations,
             findings=findings,
+            assessments=assessments,
             verdict=job.normalized_verdict if job.scanner_results else None,
             preservation_context=PreservationContext(
                 provenance={
@@ -386,6 +403,20 @@ class RABService:
                 "verified_sha256": artifact.hashes.sha256,
                 "scan_policy": job.scan_policy,
             },
+        )
+
+    def _analyzer_available(
+        self, analyzer_id: str, runtime: Mapping[str, object]
+    ) -> bool:
+        generic = self.scans.generic_analyzers.get(analyzer_id)
+        if generic is not None:
+            probe = generic.probe()
+            return probe.available and probe.state == QualificationState.PROBED
+        return (
+            analyzer_id in self.scans.adapters
+            and analyzer_id in runtime
+            and getattr(runtime[analyzer_id], "qualification_state", None)
+            == QualificationState.QUALIFIED
         )
 
     def _map_result(self, result: object) -> AnalyzerResult:

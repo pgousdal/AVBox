@@ -44,6 +44,9 @@ def parser() -> argparse.ArgumentParser:
     scan = sub.add_parser("scan")
     scan.add_argument("file", type=Path)
     scan.add_argument("--scanner", action="append", dest="scanners")
+    analyze = sub.add_parser("analyze")
+    analyze.add_argument("file", type=Path)
+    analyze.add_argument("--profile", default="identification-default@1")
     system_scan = sub.add_parser("system-scan")
     system_scan.add_argument("--scanner", action="append", dest="scanners")
     rab = sub.add_parser("rab")
@@ -52,11 +55,14 @@ def parser() -> argparse.ArgumentParser:
     rab_sub.add_parser("capabilities")
     rab_job = rab_sub.add_parser("job")
     rab_job.add_argument("job_id")
+    rab_results = rab_sub.add_parser("results")
+    rab_results.add_argument("job_id")
     rab_submit = rab_sub.add_parser("submit")
     rab_submit.add_argument("file", type=Path)
     rab_submit.add_argument("--profile", default="security-default@1")
     rab_submit.add_argument("--client-request-id", default=None)
     rab_submit.add_argument("--idempotency-key", default=None)
+    rab_submit.add_argument("--media-type", default="application/octet-stream")
     return root
 
 
@@ -161,8 +167,17 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result.__dict__, indent=2, default=str))
         return 0 if result.exit_code == 0 else 1
-    if args.command == "scan":
-        selected = args.scanners or context.settings.runtime.default_file_detectors
+    if args.command in {"scan", "analyze"}:
+        if args.command == "analyze":
+            if context.rab_protocol is None:
+                raise RuntimeError("analysis profile service is unavailable")
+            profile = context.rab_protocol.profile_map.get(args.profile)
+            if profile is None:
+                print("unknown analysis profile", file=sys.stderr)
+                return 2
+            selected = profile.analyzers
+        else:
+            selected = args.scanners or context.settings.runtime.default_file_detectors
         if context.scans is None:
             raise RuntimeError("scan service is unavailable")
         result = context.scans.scan_file(args.file, selected)
@@ -187,6 +202,10 @@ def main(argv: list[str] | None = None) -> int:
                 response = http.get(base + "/capabilities", headers=headers)
             elif args.rab_command == "job":
                 response = http.get(base + f"/analysis-jobs/{args.job_id}", headers=headers)
+            elif args.rab_command == "results":
+                response = http.get(
+                    base + f"/analysis-jobs/{args.job_id}/results", headers=headers
+                )
             else:
                 request_id = args.client_request_id or str(uuid.uuid4())
                 idempotency = args.idempotency_key or request_id
@@ -205,9 +224,10 @@ def main(argv: list[str] | None = None) -> int:
                             "profile": args.profile,
                             "protocol_version": "1",
                             "filename": args.file.name,
+                            "media_type": args.media_type,
                         },
                         files={
-                            "object_bytes": (args.file.name, stream, "application/octet-stream")
+                            "object_bytes": (args.file.name, stream, args.media_type)
                         },
                     )
         print(json.dumps(response.json(), indent=2))

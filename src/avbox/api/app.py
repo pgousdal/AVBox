@@ -25,7 +25,7 @@ def create_app(context: Context | None = None) -> FastAPI:
 
     app = FastAPI(
         title="AVBox",
-        version="0.3.0",
+        version="0.4.0",
         docs_url="/api/docs",
         redoc_url=None,
         lifespan=lifespan,
@@ -36,7 +36,7 @@ def create_app(context: Context | None = None) -> FastAPI:
 
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "milestone": "M1.1", "scanner_runtime": "enabled"}
+        return {"status": "ok", "milestone": "M1.2", "scanner_runtime": "enabled"}
 
     @app.get("/api/v1/platforms")
     async def platforms() -> list[dict[str, object]]:
@@ -110,8 +110,14 @@ def create_app(context: Context | None = None) -> FastAPI:
             f"<td>{adapter.probe().version or 'unknown'}</td></tr>"
             for name, adapter in adapters
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.1</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.1 RAB Protocol v1</dd>
+        generic_rows = "".join(
+            f"<tr><td>{name}</td><td>{adapter.analyzer_class}</td><td>"
+            f"{persisted[name].qualification_state if name in persisted else adapter.probe().state}"
+            f"</td><td>{adapter.probe().version or 'unknown'}</td></tr>"
+            for name, adapter in ctx.generic_analyzers.items()
+        )
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.2</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.2 Generic Identity</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>
@@ -119,7 +125,10 @@ def create_app(context: Context | None = None) -> FastAPI:
 <dl><dt>RAB Protocol v1 enabled</dt><dd>{rab_enabled}</dd>
 <dt>RAB queued jobs</dt><dd>{rab_queued}</dd></dl>
 <table><thead><tr><th>Detector</th><th>Class</th><th>Runtime state</th><th>Version</th></tr></thead>
-<tbody>{scanner_rows}</tbody></table></body></html>"""
+<tbody>{scanner_rows}</tbody></table>
+<h2>Generic analyzers</h2><table><thead><tr><th>Analyzer</th><th>Class</th>
+<th>Runtime state</th><th>Version</th></tr></thead><tbody>{generic_rows}</tbody></table>
+</body></html>"""
 
     return app
 

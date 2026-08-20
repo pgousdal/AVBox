@@ -9,6 +9,16 @@ class ScannerClass(StrEnum):
     IOC_DETECTOR = "ioc_detector"
     MALWARE_DETECTOR = "malware_detector"
     SYSTEM_DETECTOR = "system_detector"
+    IDENTITY_ANALYZER = "identity_analyzer"
+    FILE_TYPE_ANALYZER = "file_type_analyzer"
+    METADATA_ANALYZER = "metadata_analyzer"
+
+
+class Confidence(StrEnum):
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+    UNKNOWN = "UNKNOWN"
 
 
 class HistoricalMode(StrEnum):

@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
+from .analysis import AnalyzerResult
 from .artifacts import InputArtifact
 from .common import FindingKind, HistoricalMode, QualificationState, ScanPolicy, Verdict
 
@@ -62,6 +63,7 @@ class ScanJob(BaseModel):
     detected_media_type: str | None = None
     status: JobStatus = JobStatus.CREATED
     scanner_results: list[ScannerResult] = Field(default_factory=list)
+    analyzer_results: list[AnalyzerResult] = Field(default_factory=list)
     normalized_verdict: Verdict = Verdict.NOT_SCANNED
     raw_output_refs: list[str] = Field(default_factory=list)
     preservation_decision: str | None = None

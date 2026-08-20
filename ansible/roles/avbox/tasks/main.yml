@@ -14,6 +14,8 @@
       - python3-packaging
       - b3sum
       - bubblewrap
+      - file
+      - libmagic1
       - clamav
       - clamav-freshclam
       - yara

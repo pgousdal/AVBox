@@ -1,6 +1,16 @@
+from .analysis import (
+    AnalyzerResult,
+    Assessment,
+    Finding,
+    ObjectRelationship,
+    Observation,
+    PreservationContext,
+    RawOutputDescriptor,
+)
 from .artifacts import Hashes, InputArtifact, RepairRecord, Rights
 from .common import (
     Capability,
+    Confidence,
     DependencyMode,
     FindingKind,
     HistoricalMode,
@@ -17,21 +27,15 @@ from .protocol import (
     AnalysisJobStatus,
     AnalysisProfile,
     AnalysisResultEnvelope,
-    AnalyzerResult,
-    Assessment,
     ErrorCode,
-    Finding,
     ObjectIdentity,
-    ObjectRelationship,
-    Observation,
-    PreservationContext,
     ProtocolError,
-    RawOutputDescriptor,
 )
 from .runtime import ScannerRuntimeStatus
 
 __all__ = [
     "Capability",
+    "Confidence",
     "DependencyMode",
     "FindingKind",
     "Hashes",

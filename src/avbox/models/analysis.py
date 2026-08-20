@@ -1,0 +1,85 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
+
+from .common import Confidence, QualificationState, ScannerClass, Verdict
+
+
+class Observation(BaseModel):
+    observation_type: str
+    value: Any
+    analyzer_id: str
+    evidence_refs: list[str] = Field(default_factory=list)
+    source: str | None = None
+    observed_at: datetime | None = None
+    confidence: Literal["exact"] | None = None
+
+
+class Finding(BaseModel):
+    finding_type: str
+    analyzer_id: str
+    native_name: str | None = None
+    normalized_verdict: Verdict | None = None
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class Assessment(BaseModel):
+    assessment_type: str
+    analyzer_id: str
+    statement: str
+    confidence: Confidence = Confidence.UNKNOWN
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class PreservationContext(BaseModel):
+    rab_correlation: Literal["NOT_AVAILABLE"] = "NOT_AVAILABLE"
+    recommendation: str | None = None
+    provenance: dict[str, Any] = Field(default_factory=dict)
+
+
+class ObjectRelationship(BaseModel):
+    relationship: Literal[
+        "CONTAINS",
+        "EMBEDS",
+        "EXTRACTED_FROM",
+        "DERIVED_FROM",
+        "REPAIRED_FROM",
+        "SIMILAR_TO",
+        "DUPLICATE_OF",
+    ]
+    source_sha256: str
+    target_sha256: str
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class RawOutputDescriptor(BaseModel):
+    raw_output_id: str
+    sha256: str | None = None
+    size: int | None = None
+    media_type: Literal["text/plain"] = "text/plain"
+
+
+class AnalyzerResult(BaseModel):
+    analyzer_id: str
+    analyzer_class: ScannerClass | str
+    product: str
+    implementation: str | None = None
+    product_version: str | None = None
+    engine_version: str | None = None
+    definition_state: dict[str, str | int | None] = Field(default_factory=dict)
+    qualification_state: QualificationState | None = None
+    started_at: datetime | None = None
+    completed_at: datetime
+    duration_seconds: float | None = None
+    execution_profile: str
+    native_status: str
+    native_exit_code: int | None = None
+    normalized_verdict: Verdict | None = None
+    observations: list[Observation] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
+    assessments: list[Assessment] = Field(default_factory=list)
+    raw_output: RawOutputDescriptor | None = None
+    errors: list[str] = Field(default_factory=list)

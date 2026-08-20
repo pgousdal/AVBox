@@ -4,6 +4,7 @@ import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
+from avbox.analyzers import GenericAnalyzer
 from avbox.models import (
     InputArtifact,
     JobStatus,
@@ -44,6 +45,7 @@ class ScanService:
         jobs: JobService,
         adapters: dict[str, ScannerAdapter],
         system_adapters: dict[str, SystemDetectorAdapter],
+        generic_analyzers: dict[str, GenericAnalyzer] | None = None,
         staging: Path,
         quarantine: PreservationService,
         maximum_file_bytes: int,
@@ -51,6 +53,7 @@ class ScanService:
         self.jobs = jobs
         self.adapters = adapters
         self.system_adapters = system_adapters
+        self.generic_analyzers = generic_analyzers or {}
         self.staging = staging
         self.quarantine = quarantine
         self.maximum_file_bytes = maximum_file_bytes
@@ -59,7 +62,9 @@ class ScanService:
         if source.stat().st_size > self.maximum_file_bytes:
             raise ValueError("input exceeds configured maximum_file_bytes")
         artifact = ArtifactService.hash_file(source)
-        selected = [name for name in requested if name in self.adapters]
+        selected = [
+            name for name in requested if name in self.adapters or name in self.generic_analyzers
+        ]
         job = ScanJob(
             source="local-cli",
             input_artifact=artifact,
@@ -75,7 +80,9 @@ class ScanService:
     def create_queued(
         self, *, artifact: InputArtifact, source_label: str, requested: list[str]
     ) -> ScanJob:
-        selected = [name for name in requested if name in self.adapters]
+        selected = [
+            name for name in requested if name in self.adapters or name in self.generic_analyzers
+        ]
         job = ScanJob(
             source=source_label,
             input_artifact=artifact,
@@ -97,6 +104,36 @@ class ScanService:
         original = (artifact.byte_size, artifact.hashes.sha256)
         try:
             for name in requested:
+                generic = self.generic_analyzers.get(name)
+                if generic is not None:
+                    try:
+                        generic_result = generic.analyze(artifact, source, str(job.job_id))
+                        job.analyzer_results.append(generic_result)
+                        if generic_result.raw_output:
+                            job.raw_output_refs.append(generic_result.raw_output.raw_output_id)
+                        if generic_result.errors:
+                            job.errors.extend(
+                                f"{name}: {error}" for error in generic_result.errors
+                            )
+                        self.jobs.save_scanner_status(
+                            ScannerRuntimeStatus(
+                                scanner_id=name,
+                                qualification_state=(
+                                    generic_result.qualification_state
+                                    or QualificationState.DEGRADED
+                                ),
+                                installed_version=(
+                                    generic_result.engine_version
+                                    or generic_result.product_version
+                                ),
+                                definition_state=generic_result.definition_state,
+                                last_probe=datetime.now(UTC),
+                                detail="generic object analysis completed",
+                            )
+                        )
+                    except Exception as exc:
+                        job.errors.append(f"{name}: {type(exc).__name__}: {exc}")
+                    continue
                 adapter = self.adapters.get(name)
                 if adapter is None:
                     job.errors.append(f"{name}: unavailable or not applicable to ordinary files")
@@ -125,23 +162,25 @@ class ScanService:
                     job_id=str(job.job_id), immutable_input=source, working_root=self.staging
                 )
                 try:
-                    _, result = adapter.run_prepared(prepared)
-                    result.selected_reason = "requested and runtime-capable for ordinary-file"
-                    result.qualification_state = (
+                    _, scanner_result = adapter.run_prepared(prepared)
+                    scanner_result.selected_reason = (
+                        "requested and runtime-capable for ordinary-file"
+                    )
+                    scanner_result.qualification_state = (
                         previous_status.qualification_state if previous_status else probe.state
                     )
-                    job.scanner_results.append(result)
-                    job.raw_output_refs.append(result.raw_output_ref)
+                    job.scanner_results.append(scanner_result)
+                    job.raw_output_refs.append(scanner_result.raw_output_ref)
                     self.jobs.save_scanner_status(
                         ScannerRuntimeStatus(
                             scanner_id=name,
                             qualification_state=(
                                 QualificationState.DEGRADED
-                                if result.normalized_verdict == Verdict.ERROR
+                                if scanner_result.normalized_verdict == Verdict.ERROR
                                 else QualificationState.QUALIFIED
                             ),
-                            installed_version=result.engine_version,
-                            definition_state=result.definition_state,
+                            installed_version=scanner_result.engine_version,
+                            definition_state=scanner_result.definition_state,
                             last_probe=datetime.now(UTC),
                             detail="real ordinary-file execution completed",
                         )

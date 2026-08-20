@@ -30,6 +30,9 @@ products:
   - {id: maldet, vendor: R-fx Networks, product: Linux Malware Detect, scanner_class: malware_detector, license: GPL-2.0-only}
   - {id: chkrootkit, vendor: chkrootkit project, product: chkrootkit, scanner_class: system_detector, license: BSD-2-Clause with component exceptions}
   - {id: rkhunter, vendor: Rootkit Hunter project, product: rkhunter, scanner_class: system_detector, license: GPL-2.0-or-later}
+  - {id: avbox-identity, vendor: AVBox, product: Exact Object Identity, scanner_class: identity_analyzer, license: MIT}
+  - {id: file-libmagic, vendor: Christos Zoulas and contributors, product: file/libmagic, scanner_class: file_type_analyzer, license: BSD-2-Clause}
+  - {id: avbox-basic-metadata, vendor: AVBox, product: Basic Object Metadata, scanner_class: metadata_analyzer, license: MIT}
   - {id: sophos-sav-linux, vendor: Sophos, product: Sophos Anti-Virus for Linux 9.x, scanner_class: antivirus_engine, notes: Historical artifacts and runtime qualification incomplete.}
   - {id: fprot-linux, vendor: FRISK, product: F-PROT for Linux, scanner_class: antivirus_engine, notes: Final release and definitions remain artifact-wanted.}
   - {id: mcafee-dos, vendor: McAfee, product: VirusScan/SCAN for DOS, scanner_class: antivirus_engine, notes: Exact engine and definition pairing incomplete.}

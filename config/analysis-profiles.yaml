@@ -5,3 +5,8 @@ profiles:
     analyzers: [clamav, yara]
     capabilities: [security_detection]
     enabled: true
+  - id: identification-default
+    version: 1
+    analyzers: [identity, basic-metadata, file-type]
+    capabilities: [object_identity, file_type, basic_metadata]
+    enabled: true
