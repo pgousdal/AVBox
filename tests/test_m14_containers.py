@@ -108,6 +108,44 @@ def test_nested_zip_and_depth_limit(tmp_path: Path) -> None:
     assert job.completeness == "PARTIAL_LIMIT"
 
 
+def test_lha_header_precedes_embedded_zip_probe(tmp_path: Path) -> None:
+    source = tmp_path / "nested.lzh"
+    source.write_bytes(b"\x16\x00-lh0-" + b"header" + b"PK\x05\x06" + b"\x00" * 18)
+    assert ContainerAnalyzer._kind(source) == "lha"
+
+
+def test_debian_lhasa_verbose_listing_parser() -> None:
+    listing = (
+        "[generic]                   18      18 100.0% -lh0- f4e8"
+        "              hello file.txt\n"
+        "[generic]                  137     137 100.0% -lh5- 8773"
+        "              nested/inner.zip\n"
+    )
+    assert ContainerAnalyzer._parse_lha_listing(listing) == [
+        {"method": "-lh0-", "size": 18, "name": "hello file.txt", "directory": False},
+        {"method": "-lh5-", "size": 137, "name": "nested/inner.zip", "directory": False},
+    ]
+
+
+def test_7z_listing_excludes_attribute_directories() -> None:
+    listing = """Path = archive.7z
+Type = 7z
+Physical Size = 100
+
+Path = nested
+Size = 0
+Attributes = D drwxr-xr-x
+
+Path = nested/file.txt
+Size = 4
+Attributes = A -rw-r--r--
+"""
+    assert ContainerAnalyzer._parse_7z_listing(listing) == [
+        {"name": "nested", "size": "0", "directory": True},
+        {"name": "nested/file.txt", "size": "4", "directory": False},
+    ]
+
+
 def test_duplicate_names_and_content_keep_edges(tmp_path: Path) -> None:
     source = tmp_path / "duplicates.zip"
     with zipfile.ZipFile(source, "w") as archive:

@@ -5,6 +5,7 @@ import gzip
 import io
 import lzma
 import os
+import selectors
 import shutil
 import subprocess
 import tarfile
@@ -66,7 +67,7 @@ class ContainerAnalyzer:
             True,
             "Python userspace plus Debian lhasa/7z userspace handlers",
             QualificationState.QUALIFIED,
-            "stdlib+lhasa-0.5.0+7zip-26.00",
+            "stdlib+lhasa+7zip",
         )
 
     def process(self, job: ScanJob, source: Path) -> None:
@@ -311,7 +312,7 @@ class ContainerAnalyzer:
         """Enumerate and extract through Debian 7z/lhasa without mounting or shelling."""
         if kind == "lha":
             tool = shutil.which("lhasa") or shutil.which("lha")
-            list_args = [tool, "l", str(source)] if tool else []
+            list_args = [tool, "v", str(source)] if tool else []
         else:
             tool = shutil.which("7z")
             list_args = [tool, "l", "-slt", "--", str(source)] if tool else []
@@ -324,6 +325,7 @@ class ContainerAnalyzer:
                 self._sandbox_argv(list_args),
                 cwd=source.parent,
                 env=self._tool_env(),
+                stdin=subprocess.DEVNULL,
                 capture_output=True,
                 text=True,
                 errors="replace",
@@ -335,8 +337,13 @@ class ContainerAnalyzer:
             job.completeness = "PARTIAL_ERROR"
             return
         if listed.returncode != 0:
-            self._skip(job, usage, "CORRUPT_CONTAINER")
-            job.completeness = "PARTIAL_ERROR"
+            combined = listed.stdout + listed.stderr
+            if "Enter password" in combined or "encrypted" in combined.lower():
+                self._skip(job, usage, "ENCRYPTED_CONTAINER")
+                job.completeness = "PARTIAL_UNSUPPORTED"
+            else:
+                self._skip(job, usage, "CORRUPT_CONTAINER")
+                job.completeness = "PARTIAL_ERROR"
             return
         members = (
             self._parse_lha_listing(listed.stdout)
@@ -363,7 +370,7 @@ class ContainerAnalyzer:
                 # lhasa writes files; use a private per-member directory and read the result.
                 with tempfile.TemporaryDirectory(dir=self.settings.paths.scratch) as temp:
                     result = subprocess.run(
-                        self._sandbox_argv([tool, f"xfiw={temp}", str(source), name], Path(temp)),
+                        self._sandbox_argv([tool, f"xfw={temp}", str(source), name], Path(temp)),
                         cwd=source.parent,
                         env=self._tool_env(),
                         capture_output=True,
@@ -396,7 +403,7 @@ class ContainerAnalyzer:
                             metadata,
                         )
             else:
-                output, returncode = self._extract_stdout(tool, source, name)
+                output, returncode = self._extract_stdout(tool, source, name, started)
                 if returncode != 0 or output is None:
                     self._skip(job, usage, "MEMBER_EXTRACTION_FAILURE")
                     continue
@@ -413,26 +420,41 @@ class ContainerAnalyzer:
     def _tool_env() -> dict[str, str]:
         return {"PATH": "/usr/bin:/bin", "HOME": "/nonexistent", "LANG": "C.UTF-8"}
 
-    def _extract_stdout(self, tool: str, source: Path, name: str) -> tuple[bytes | None, int]:
+    def _extract_stdout(
+        self, tool: str, source: Path, name: str, started: float
+    ) -> tuple[bytes | None, int]:
         try:
             process = subprocess.Popen(
                 self._sandbox_argv([tool, "e", "-so", "--", str(source), name]),
                 cwd=source.parent,
                 env=self._tool_env(),
+                stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
             )
             assert process.stdout is not None
             chunks: list[bytes] = []
             size = 0
-            while chunk := process.stdout.read(1024 * 1024):
+            selector = selectors.DefaultSelector()
+            selector.register(process.stdout, selectors.EVENT_READ)
+            while True:
+                remaining = self.budget.max_extraction_time_seconds - (
+                    time.monotonic() - started
+                )
+                if remaining <= 0 or not selector.select(remaining):
+                    process.kill()
+                    process.wait()
+                    return None, 1
+                chunk = os.read(process.stdout.fileno(), 1024 * 1024)
+                if not chunk:
+                    break
                 size += len(chunk)
                 if size > self.budget.max_single_child_bytes:
                     process.kill()
                     process.wait()
                     return None, 1
                 chunks.append(chunk)
-            return b"".join(chunks), process.wait()
+            return b"".join(chunks), process.wait(timeout=max(0.1, remaining))
         except (OSError, subprocess.TimeoutExpired):
             return None, 1
 
@@ -474,7 +496,8 @@ class ContainerAnalyzer:
                     {
                         "name": name,
                         "size": values.get("Size", "0"),
-                        "directory": values.get("Folder", "-") == "+",
+                        "directory": values.get("Folder", "-") == "+"
+                        or values.get("Attributes", "").startswith("D"),
                     }
                 )
         return result
@@ -485,15 +508,20 @@ class ContainerAnalyzer:
         for line in output.splitlines():
             fields = line.split()
             if len(fields) >= 5 and fields[0] == "[generic]":
-                size = next((int(value) for value in fields[1:-1] if value.isdigit()), None)
+                method = next(
+                    (value for value in fields[1:-1] if value.startswith("-lh")), None
+                )
+                numeric = [int(value) for value in fields[1:-1] if value.isdigit()]
+                size = numeric[1] if len(numeric) >= 2 else (numeric[0] if numeric else None)
                 if size is None:
                     continue
+                name = line[68:].strip() if len(line) > 68 else fields[-1]
                 rows.append(
                     {
-                        "method": None,
+                        "method": method,
                         "size": size,
-                        "name": fields[-1],
-                        "directory": fields[-1].endswith("/"),
+                        "name": name,
+                        "directory": name.endswith("/"),
                     }
                 )
         return rows
@@ -557,13 +585,18 @@ class ContainerAnalyzer:
 
     @staticmethod
     def _kind(source: Path) -> str | None:
-        if zipfile.is_zipfile(source):
-            return "zip"
         try:
             with source.open("rb") as stream:
-                header = stream.read(4)
+                header = stream.read(8)
         except OSError:
             return None
+        # LHA has its method marker in the level-0/1 header.  Detect it before
+        # zipfile.is_zipfile(), which deliberately accepts arbitrary prefixes
+        # and would otherwise mistake an LHA containing a ZIP member for ZIP.
+        if len(header) >= 7 and header[2:7].startswith(b"-lh"):
+            return "lha"
+        if zipfile.is_zipfile(source):
+            return "zip"
         if header.startswith(b"PK"):
             return "corrupt-zip"
         with source.open("rb") as stream:
@@ -592,10 +625,6 @@ class ContainerAnalyzer:
             return "cab"
         if header.startswith(b"\x60\xea"):
             return "arj"
-        with source.open("rb") as stream:
-            probe = stream.read(8)
-        if len(probe) >= 7 and probe[2:7].startswith(b"-lh"):
-            return "lha"
         return None
 
     def _can_start_child(self, job: ScanJob, usage: ExtractionUsage) -> bool:

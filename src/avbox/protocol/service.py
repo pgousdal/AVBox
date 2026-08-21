@@ -177,11 +177,11 @@ class RABService:
                     "gzip": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
                     "bzip2": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
                     "xz": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "lha": {"recognize": True, "extract": True, "qualified": True, "handler": "lhasa-0.5.0"},  # noqa: E501
-                    "iso9660": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00-userspace"},  # noqa: E501
-                    "7z": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00"},  # noqa: E501
-                    "cab": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "7zip-26.00"},  # noqa: E501
-                    "arj": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "7zip-26.00"},  # noqa: E501
+                    "lha": {"recognize": True, "extract": True, "qualified": True, "handler": "debian-lhasa"},  # noqa: E501
+                    "iso9660": {"recognize": True, "extract": True, "qualified": True, "handler": "debian-7zip-userspace"},  # noqa: E501
+                    "7z": {"recognize": True, "extract": True, "qualified": True, "handler": "debian-7zip"},  # noqa: E501
+                    "cab": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "debian-7zip"},  # noqa: E501
+                    "arj": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "debian-7zip"},  # noqa: E501
                     "lzx": {"recognize": False, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
                     "rar": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
                 },

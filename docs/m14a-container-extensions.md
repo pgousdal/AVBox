@@ -7,13 +7,14 @@ RAB writeback.
 | Format | Recognition | Extraction | Handler |
 |---|---|---|---|
 | ZIP, tar, gzip, bzip2, xz | qualified | qualified | Python userspace |
-| LHA/LZH | qualified | qualified | Debian `lhasa` 0.5.0 |
-| ISO9660 | qualified | qualified | Debian `7z` 26.00 userspace |
-| 7z | qualified | qualified | Debian `7z` 26.00 |
-| CAB, ARJ | recognized | deferred | Debian `7z` 26.00 (not real-qualified) |
+| LHA/LZH `-lh0-` | qualified | qualified | Debian `lhasa` 0.4.0 |
+| ISO9660 | qualified | qualified | Debian `7z` 25.01 userspace |
+| 7z | qualified | qualified | Debian `7z` 25.01 |
+| CAB, ARJ | recognized | deferred | Debian `7z` (not real-qualified) |
 | Amiga LZX | deferred | deferred | no accepted Debian implementation |
 | RAR | recognized where identified | deferred | licensing/supply-chain policy |
 
+Only `-lh0-` has a real qualified fixture; other LHA methods are not claimed.
 LHA member names are retained as untrusted metadata and checked against the
 same traversal, length, and depth limits as other containers.  Extraction is
 read-only and streamed into generated scratch paths; archive-selected paths
