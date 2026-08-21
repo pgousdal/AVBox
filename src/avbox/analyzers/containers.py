@@ -320,9 +320,16 @@ class ContainerAnalyzer:
             job.completeness = "PARTIAL_UNSUPPORTED"
             return
         try:
-            listed = subprocess.run(list_args, cwd=source.parent, env=self._tool_env(),
-                                    capture_output=True, text=True, errors="replace",
-                                    timeout=self.budget.max_extraction_time_seconds, check=False)
+            listed = subprocess.run(
+                self._sandbox_argv(list_args),
+                cwd=source.parent,
+                env=self._tool_env(),
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=self.budget.max_extraction_time_seconds,
+                check=False,
+            )
         except (OSError, subprocess.TimeoutExpired):
             self._skip(job, usage, "ENUMERATION_FAILURE")
             job.completeness = "PARTIAL_ERROR"
@@ -332,9 +339,9 @@ class ContainerAnalyzer:
             job.completeness = "PARTIAL_ERROR"
             return
         members = (
-            self._parse_7z_listing(listed.stdout)
-            if kind != "lha"
-            else self._parse_lha_listing(listed.stdout)
+            self._parse_lha_listing(listed.stdout)
+            if kind == "lha"
+            else self._parse_7z_listing(listed.stdout)
         )
         if len(members) > self.budget.max_children_per_object:
             self._limit(job, usage, "CHILD_COUNT_LIMIT")
@@ -348,7 +355,7 @@ class ContainerAnalyzer:
                 continue
             if member.get("directory"):
                 continue
-            declared = int(member.get("size", 0) or 0)
+            declared = int(str(member.get("size", 0) or 0))
             if declared > self.budget.max_single_child_bytes:
                 self._skip(job, usage, "CHILD_SIZE_LIMIT")
                 continue
@@ -356,7 +363,7 @@ class ContainerAnalyzer:
                 # lhasa writes files; use a private per-member directory and read the result.
                 with tempfile.TemporaryDirectory(dir=self.settings.paths.scratch) as temp:
                     result = subprocess.run(
-                        [tool, f"xfiw={temp}", str(source), name],
+                        self._sandbox_argv([tool, f"xfiw={temp}", str(source), name], Path(temp)),
                         cwd=source.parent,
                         env=self._tool_env(),
                         capture_output=True,
@@ -409,7 +416,7 @@ class ContainerAnalyzer:
     def _extract_stdout(self, tool: str, source: Path, name: str) -> tuple[bytes | None, int]:
         try:
             process = subprocess.Popen(
-                [tool, "e", "-so", "--", str(source), name],
+                self._sandbox_argv([tool, "e", "-so", "--", str(source), name]),
                 cwd=source.parent,
                 env=self._tool_env(),
                 stdout=subprocess.PIPE,
@@ -429,6 +436,29 @@ class ContainerAnalyzer:
         except (OSError, subprocess.TimeoutExpired):
             return None, 1
 
+    def _sandbox_argv(self, argv: list[str], writable: Path | None = None) -> list[str]:
+        if not self.settings.runtime.use_bubblewrap or not shutil.which("bwrap"):
+            return argv
+        command = [
+            "bwrap",
+            "--die-with-parent",
+            "--new-session",
+            "--unshare-net",
+            "--ro-bind",
+            "/",
+            "/",
+            "--dev",
+            "/dev",
+            "--proc",
+            "/proc",
+            "--tmpfs",
+            "/tmp",
+        ]
+        if writable is not None:
+            command.extend(["--bind", str(writable), str(writable)])
+        command.extend(["--"])
+        return command + argv
+
     @staticmethod
     def _parse_7z_listing(output: str) -> list[dict[str, object]]:
         result: list[dict[str, object]] = []
@@ -439,12 +469,12 @@ class ContainerAnalyzer:
                     key, value = line.split("=", 1)
                     values[key.strip()] = value.strip()
             name = values.get("Path")
-            if name and name not in {".", ".."}:
+            if name and name not in {".", ".."} and "Size" in values:
                 result.append(
                     {
                         "name": name,
                         "size": values.get("Size", "0"),
-                        "directory": values.get("Folder", "+") == "+",
+                        "directory": values.get("Folder", "-") == "+",
                     }
                 )
         return result
@@ -454,14 +484,13 @@ class ContainerAnalyzer:
         rows: list[dict[str, object]] = []
         for line in output.splitlines():
             fields = line.split()
-            if len(fields) >= 5 and fields[0].startswith("-") and fields[0].endswith("-"):
-                try:
-                    size = int(fields[3])
-                except ValueError:
+            if len(fields) >= 5 and fields[0] == "[generic]":
+                size = next((int(value) for value in fields[1:-1] if value.isdigit()), None)
+                if size is None:
                     continue
                 rows.append(
                     {
-                        "method": fields[0],
+                        "method": None,
                         "size": size,
                         "name": fields[-1],
                         "directory": fields[-1].endswith("/"),
@@ -537,6 +566,13 @@ class ContainerAnalyzer:
             return None
         if header.startswith(b"PK"):
             return "corrupt-zip"
+        with source.open("rb") as stream:
+            stream.seek(0x8001)
+            if stream.read(5) == b"CD001":
+                return "iso9660"
+            stream.seek(0x8801)
+            if stream.read(5) == b"CD001":
+                return "iso9660"
         try:
             if tarfile.is_tarfile(source):
                 return "tar"
@@ -556,14 +592,6 @@ class ContainerAnalyzer:
             return "cab"
         if header.startswith(b"\x60\xea"):
             return "arj"
-        if len(header) >= 4:
-            with source.open("rb") as stream:
-                stream.seek(0x8001)
-                if stream.read(5) == b"CD001":
-                    return "iso9660"
-                stream.seek(0x8801)
-                if stream.read(5) == b"CD001":
-                    return "iso9660"
         with source.open("rb") as stream:
             probe = stream.read(8)
         if len(probe) >= 7 and probe[2:7].startswith(b"-lh"):

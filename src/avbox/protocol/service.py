@@ -180,8 +180,8 @@ class RABService:
                     "lha": {"recognize": True, "extract": True, "qualified": True, "handler": "lhasa-0.5.0"},  # noqa: E501
                     "iso9660": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00-userspace"},  # noqa: E501
                     "7z": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00"},  # noqa: E501
-                    "cab": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00"},  # noqa: E501
-                    "arj": {"recognize": True, "extract": True, "qualified": True, "handler": "7zip-26.00"},  # noqa: E501
+                    "cab": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "7zip-26.00"},  # noqa: E501
+                    "arj": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "7zip-26.00"},  # noqa: E501
                     "lzx": {"recognize": False, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
                     "rar": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
                 },

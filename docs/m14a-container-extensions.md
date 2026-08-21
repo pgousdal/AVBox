@@ -9,7 +9,8 @@ RAB writeback.
 | ZIP, tar, gzip, bzip2, xz | qualified | qualified | Python userspace |
 | LHA/LZH | qualified | qualified | Debian `lhasa` 0.5.0 |
 | ISO9660 | qualified | qualified | Debian `7z` 26.00 userspace |
-| 7z, CAB, ARJ | qualified | qualified | Debian `7z` 26.00 |
+| 7z | qualified | qualified | Debian `7z` 26.00 |
+| CAB, ARJ | recognized | deferred | Debian `7z` 26.00 (not real-qualified) |
 | Amiga LZX | deferred | deferred | no accepted Debian implementation |
 | RAR | recognized where identified | deferred | licensing/supply-chain policy |
 

@@ -118,7 +118,7 @@ def create_app(context: Context | None = None) -> FastAPI:
         )
         recursive = getattr(ctx.scans, "recursive_analyzer", None)
         container_summary = (
-            "qualified: ZIP, tar, gzip, bzip2, xz; "
+            "qualified: ZIP, tar, gzip, bzip2, xz, LHA, ISO9660, 7z; deferred: CAB, ARJ, LZX, RAR; "
             f"max depth {recursive.budget.max_recursion_depth}; "
             f"max children {recursive.budget.max_total_children}"
             if recursive is not None
