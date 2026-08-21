@@ -51,6 +51,7 @@ class ObjectRelationship(BaseModel):
         "DUPLICATE_OF",
         "MEMBER_OF",
         "DECOMPRESSED_FROM",
+        "FILESYSTEM_ENTRY_OF",
     ]
     source_sha256: str
     target_sha256: str
@@ -125,3 +126,4 @@ class DerivedObject(BaseModel):
     scanner_results: list[Any] = Field(default_factory=list)
     normalized_verdict: Verdict = Verdict.NOT_SCANNED
     errors: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)

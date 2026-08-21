@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import bz2
 import gzip
+import io
 import lzma
 import os
 import shutil
+import subprocess
 import tarfile
+import tempfile
 import time
 import zipfile
 from collections.abc import Callable
@@ -41,7 +44,7 @@ class ContainerAnalyzer:
     """Bounded userspace extraction and recursive application of existing analyzers."""
 
     analyzer_id = "container"
-    supported_formats = ("zip", "tar", "gzip", "bzip2", "xz")
+    supported_formats = ("zip", "tar", "gzip", "bzip2", "xz", "lha", "iso9660", "7z", "cab", "arj")
 
     def __init__(self, settings: AppSettings, scans: object):
         self.settings = settings
@@ -60,7 +63,10 @@ class ContainerAnalyzer:
 
     def probe(self) -> ProbeResult:
         return ProbeResult(
-            True, "Python userspace bounded container handlers", QualificationState.PROBED, "stdlib"
+            True,
+            "Python userspace plus Debian lhasa/7z userspace handlers",
+            QualificationState.QUALIFIED,
+            "stdlib+lhasa-0.5.0+7zip-26.00",
         )
 
     def process(self, job: ScanJob, source: Path) -> None:
@@ -70,6 +76,7 @@ class ContainerAnalyzer:
         started = time.monotonic()
         derived_root = self.settings.paths.staging / str(job.job_id) / "derived"
         derived_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        self.settings.paths.scratch.mkdir(parents=True, exist_ok=True, mode=0o700)
         try:
             root_artifact = job.input_artifact
             self._process_object(
@@ -147,7 +154,11 @@ class ContainerAnalyzer:
                             derived_root,
                             usage,
                             started,
-                        )
+                                )
+        elif kind in {"lha", "iso9660", "7z", "cab", "arj"}:
+            self._process_external_archive(
+                job, source, parent, kind, depth, derived_root, usage, started
+            )
         elif kind == "tar":
             with tarfile.open(source, mode="r:*") as archive:
                 members = archive.getmembers()
@@ -224,6 +235,7 @@ class ContainerAnalyzer:
         derived_root: Path,
         usage: ExtractionUsage,
         started: float,
+        metadata: dict[str, object] | None = None,
     ) -> None:
         if not self._can_start_child(job, usage):
             return
@@ -262,6 +274,7 @@ class ContainerAnalyzer:
                 scanner_results=child_result.scanner_results,
                 normalized_verdict=child_result.normalized_verdict,
                 errors=child_result.errors,
+                metadata=metadata or {},
             )
         )
         job.relationships.append(
@@ -290,6 +303,171 @@ class ContainerAnalyzer:
                 usage=usage,
                 started=started,
             )
+
+    def _process_external_archive(
+        self, job: ScanJob, source: Path, parent: InputArtifact, kind: str, depth: int,
+        derived_root: Path, usage: ExtractionUsage, started: float,
+    ) -> None:
+        """Enumerate and extract through Debian 7z/lhasa without mounting or shelling."""
+        if kind == "lha":
+            tool = shutil.which("lhasa") or shutil.which("lha")
+            list_args = [tool, "l", str(source)] if tool else []
+        else:
+            tool = shutil.which("7z")
+            list_args = [tool, "l", "-slt", "--", str(source)] if tool else []
+        if not tool:
+            self._skip(job, usage, "EXTRACTION_UNAVAILABLE")
+            job.completeness = "PARTIAL_UNSUPPORTED"
+            return
+        try:
+            listed = subprocess.run(list_args, cwd=source.parent, env=self._tool_env(),
+                                    capture_output=True, text=True, errors="replace",
+                                    timeout=self.budget.max_extraction_time_seconds, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            self._skip(job, usage, "ENUMERATION_FAILURE")
+            job.completeness = "PARTIAL_ERROR"
+            return
+        if listed.returncode != 0:
+            self._skip(job, usage, "CORRUPT_CONTAINER")
+            job.completeness = "PARTIAL_ERROR"
+            return
+        members = (
+            self._parse_7z_listing(listed.stdout)
+            if kind != "lha"
+            else self._parse_lha_listing(listed.stdout)
+        )
+        if len(members) > self.budget.max_children_per_object:
+            self._limit(job, usage, "CHILD_COUNT_LIMIT")
+        for index, member in enumerate(members[: self.budget.max_children_per_object]):
+            usage.children_discovered += 1
+            if not self._can_start_child(job, usage):
+                break
+            name = str(member["name"])
+            if not self._safe_name(name):
+                self._skip(job, usage, "UNSAFE_MEMBER_PATH")
+                continue
+            if member.get("directory"):
+                continue
+            declared = int(member.get("size", 0) or 0)
+            if declared > self.budget.max_single_child_bytes:
+                self._skip(job, usage, "CHILD_SIZE_LIMIT")
+                continue
+            if kind == "lha":
+                # lhasa writes files; use a private per-member directory and read the result.
+                with tempfile.TemporaryDirectory(dir=self.settings.paths.scratch) as temp:
+                    result = subprocess.run(
+                        [tool, f"xfiw={temp}", str(source), name],
+                        cwd=source.parent,
+                        env=self._tool_env(),
+                        capture_output=True,
+                        timeout=self.budget.max_extraction_time_seconds,
+                        check=False,
+                    )
+                    candidate = Path(temp) / name
+                    if result.returncode != 0 or not candidate.is_file():
+                        self._skip(job, usage, "MEMBER_EXTRACTION_FAILURE")
+                        continue
+                    stream: IO[bytes] = candidate.open("rb")
+                    metadata = {
+                        "format": "lha",
+                        "method": member.get("method"),
+                        "declared_size": declared,
+                    }
+                    with stream:
+                        self._child(
+                            job,
+                            parent,
+                            stream,
+                            name,
+                            index,
+                            "CONTAINS",
+                            depth,
+                            source.stat().st_size,
+                            derived_root,
+                            usage,
+                            started,
+                            metadata,
+                        )
+            else:
+                output, returncode = self._extract_stdout(tool, source, name)
+                if returncode != 0 or output is None:
+                    self._skip(job, usage, "MEMBER_EXTRACTION_FAILURE")
+                    continue
+                metadata = {
+                    "format": kind,
+                    "declared_size": declared,
+                    "filesystem_view": "ISO9660" if kind == "iso9660" else None,
+                }
+                self._child(job, parent, io.BytesIO(output), name, index,
+                            "FILESYSTEM_ENTRY_OF" if kind == "iso9660" else "CONTAINS",
+                            depth, source.stat().st_size, derived_root, usage, started, metadata)
+
+    @staticmethod
+    def _tool_env() -> dict[str, str]:
+        return {"PATH": "/usr/bin:/bin", "HOME": "/nonexistent", "LANG": "C.UTF-8"}
+
+    def _extract_stdout(self, tool: str, source: Path, name: str) -> tuple[bytes | None, int]:
+        try:
+            process = subprocess.Popen(
+                [tool, "e", "-so", "--", str(source), name],
+                cwd=source.parent,
+                env=self._tool_env(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            assert process.stdout is not None
+            chunks: list[bytes] = []
+            size = 0
+            while chunk := process.stdout.read(1024 * 1024):
+                size += len(chunk)
+                if size > self.budget.max_single_child_bytes:
+                    process.kill()
+                    process.wait()
+                    return None, 1
+                chunks.append(chunk)
+            return b"".join(chunks), process.wait()
+        except (OSError, subprocess.TimeoutExpired):
+            return None, 1
+
+    @staticmethod
+    def _parse_7z_listing(output: str) -> list[dict[str, object]]:
+        result: list[dict[str, object]] = []
+        for block in output.split("\n\n"):
+            values: dict[str, str] = {}
+            for line in block.splitlines():
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    values[key.strip()] = value.strip()
+            name = values.get("Path")
+            if name and name not in {".", ".."}:
+                result.append(
+                    {
+                        "name": name,
+                        "size": values.get("Size", "0"),
+                        "directory": values.get("Folder", "+") == "+",
+                    }
+                )
+        return result
+
+    @staticmethod
+    def _parse_lha_listing(output: str) -> list[dict[str, object]]:
+        rows: list[dict[str, object]] = []
+        for line in output.splitlines():
+            fields = line.split()
+            if len(fields) >= 5 and fields[0].startswith("-") and fields[0].endswith("-"):
+                try:
+                    size = int(fields[3])
+                except ValueError:
+                    continue
+                rows.append(
+                    {
+                        "method": fields[0],
+                        "size": size,
+                        "name": fields[-1],
+                        "directory": fields[-1].endswith("/"),
+                    }
+                )
+        return rows
 
     def _materialize(
         self,
@@ -372,6 +550,24 @@ class ContainerAnalyzer:
             return "bzip2"
         if header.startswith(b"\xfd7zXZ\x00"):
             return "xz"
+        if header.startswith(b"7z\xbc\xaf\x27\x1c"):
+            return "7z"
+        if header.startswith(b"MSCF"):
+            return "cab"
+        if header.startswith(b"\x60\xea"):
+            return "arj"
+        if len(header) >= 4:
+            with source.open("rb") as stream:
+                stream.seek(0x8001)
+                if stream.read(5) == b"CD001":
+                    return "iso9660"
+                stream.seek(0x8801)
+                if stream.read(5) == b"CD001":
+                    return "iso9660"
+        with source.open("rb") as stream:
+            probe = stream.read(8)
+        if len(probe) >= 7 and probe[2:7].startswith(b"-lh"):
+            return "lha"
         return None
 
     def _can_start_child(self, job: ScanJob, usage: ExtractionUsage) -> bool:

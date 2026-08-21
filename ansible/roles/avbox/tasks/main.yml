@@ -23,6 +23,8 @@
       - yara
       - chkrootkit
       - rkhunter
+      - lhasa
+      - 7zip
     state: present
     update_cache: true
 
