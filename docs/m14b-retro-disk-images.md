@@ -54,7 +54,7 @@ an umbrella retro-disk capability.
 |---|---|---|
 | AVBox bounded FAT reader | repository source, project license | Read-only FAT12/16/32 enumeration; selected to avoid writable CLI and output parsing. |
 | Debian mtools | 4.0.48-1 in Debian 13, GNU project/GPL | Mature userspace FAT tool with writes; useful survey/fixture option, not required at runtime. |
-| Debian dosfstools | 4.2-1.1 in Debian 13, GPL | `mkfs.fat`/`fsck.fat`; fixture validation only, not runtime. |
+| Debian dosfstools | 4.2-1.2 candidate in Debian 13, GPL | `mkfs.fat`/`fsck.fat`; fixture validation only, not runtime. |
 | amitools/xdftool | pinned upstream 0.8.0, GitHub/PyPI, GPL-2.0 | Reputable OFS/FFS create/list/extract tool; independently validates qualification ADFs. Its broad writable HDF/RDB surface is unnecessary at runtime. |
 | AVBox bounded ADF reader | repository source, project license | Small read-only DOS0/DOS1 880 KiB parser selected for runtime. |
 | libarchive/7-Zip | Debian packages | Do not provide the required independently truthful OFS/FFS model. |

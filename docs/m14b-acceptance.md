@@ -12,7 +12,10 @@ storage, or start Windows/historical workers. Filesystem facts have no security
 verdict mapping. Protocol v1 remains compatible and capabilities state each
 filesystem variant independently.
 
-Final acceptance depends on the last full local quality run, package builds,
-registry/doctor checks, Ansible syntax and two-run convergence, systemd verify,
-deployed Protocol v1 fixture jobs, cleanup/no-network evidence, representative
-M1–M1.4a regressions, a clean committed worktree, and no push.
+The final local quality run, both package builds, registry/doctor checks,
+Ansible syntax, two-run convergence, systemd verification, deployed Protocol v1
+fixture jobs, cleanup/no-network evidence, and representative M1–M1.4a
+regressions passed. The final Ansible pass was `changed=0 failed=0` and the
+service remained active, healthy, and loopback-only.
+
+M1.4b ACCEPTANCE: PASS
