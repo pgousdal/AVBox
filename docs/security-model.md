@@ -2,6 +2,13 @@
 
 M1 treats submissions and scanner parsers as untrusted. The hard default is `ScanPolicy.READ_ONLY`. Adapters reject remediation arguments, scan a mode-0400 copy, and compare source size/SHA-256 before and after execution. Filenames are labels; SHA-256 is identity. Raw output is stored mode 0400 outside SQLite and is never interpreted as HTML.
 
+MBR and RDB processing uses bounded userspace reads only. Submitted images are
+never mounted or exposed through loop, FUSE, udisks, guestmount, or device
+mapper. RDB filesystem-handler/loadseg bytes are never executed. Partition
+names and boot flags are untrusted metadata, not filesystem authority or
+security evidence. Repair, recovery, deleted-file, slack, and unallocated-space
+processing are absent.
+
 Production directories are owned by unprivileged `avbox` with mode 0700. Staging and quarantine should be separate `nodev,nosuid,noexec` mounts; the included script verifies this. They must not be shared over SMB/NFS.
 
 Clean working bytes are deleted after scanning by later lifecycle orchestration. Malicious, suspicious and PUA bytes may enter immutable content-addressed quarantine. There is no automatic redistribution.

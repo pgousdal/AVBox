@@ -56,6 +56,9 @@ class RuntimeSettings(BaseModel):
     max_member_name_bytes: int = Field(ge=1, le=65536, default=4096)
     max_path_depth: int = Field(ge=1, le=256, default=32)
     max_extraction_time_seconds: int = Field(ge=1, default=300)
+    max_partitions_per_disk: int = Field(ge=1, le=256, default=32)
+    max_materialized_partition_bytes: int = Field(ge=1, default=256 * 1024 * 1024)
+    max_total_materialized_partition_bytes: int = Field(ge=1, default=512 * 1024 * 1024)
 
 
 class APISettings(BaseModel):

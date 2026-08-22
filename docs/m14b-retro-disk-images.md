@@ -66,6 +66,10 @@ amitools images. Runtime dependencies are unchanged.
 
 ## Scope and limitations
 
+M1.4c subsequently adds qualified MBR-primary and RDB/HDF traversal; see
+`m14c-partitioned-images.md`. The following text records the original M1.4b
+boundary rather than current capability.
+
 Atari ST plain FAT may happen to satisfy the strict FAT reader, but no Atari ST
 fixture was qualified and the capability remains `DEFERRED`. MSA needs bounded
 decode-to-ST semantics and is deferred. Apple DOS 3.3 and ProDOS need separate

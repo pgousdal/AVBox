@@ -192,7 +192,11 @@ def make_adf(path: Path, filesystem: str = "OFS") -> dict[str, bytes]:
         "DUP2": b"duplicate\n",
         "DRAWER/CHILD": b"child from ADF\n",
         "ARCHIVE.LHA": make_lh0("lha-child.txt", b"ADF LHA child\n"),
-        "YARA-MARKER": b"AVBOX_M1_HARMLESS_POSITIVE_7F45D8\n",
+        # Split the marker across filesystem data blocks in raw media. The
+        # extracted child is positive while direct disk/partition scans remain
+        # distinct and clean.
+        "YARA-MARKER": (b"A" * (480 if filesystem == "OFS" else 500))
+        + b"AVBOX_M1_HARMLESS_POSITIVE_7F45D8\n",
     }
 
     def put_header(key: int, name: str, kind: int, parent: int, payload: bytes = b"") -> bytearray:
@@ -217,6 +221,10 @@ def make_adf(path: Path, filesystem: str = "OFS") -> dict[str, bytes]:
                 data_key = free_key
                 free_key += 1
                 pointers.append(data_key)
+                if name == "YARA-MARKER" and chunks > 1 and index == 0:
+                    # An unused block prevents the marker split from remaining
+                    # contiguous in raw disk bytes.
+                    free_key += 1
                 value = bytearray(512)
                 chunk = payload[
                     index * (488 if filesystem == "OFS" else 512) : (index + 1)

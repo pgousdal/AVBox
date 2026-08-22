@@ -119,15 +119,16 @@ def create_app(context: Context | None = None) -> FastAPI:
         recursive = getattr(ctx.scans, "recursive_analyzer", None)
         container_summary = (
             "qualified: ZIP, tar, gzip, bzip2, xz, LHA, ISO9660, 7z, "
-            "FAT12/16/32, ADF OFS/FFS; deferred: CAB, ARJ, LZX, RAR, Atari, Apple II, HFS; "
+            "FAT12/16/32, ADF OFS/FFS, MBR primary, RDB/HDF; "
+            "deferred: EBR, GPT, flat HDF, CAB, ARJ, LZX, RAR, Atari, Apple II, HFS; "
             f"max depth {recursive.budget.max_recursion_depth}; "
             f"max children {recursive.budget.max_total_children}"
             if recursive is not None
             else "not available"
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.4b</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.4b Bounded Retro Disk-Image
-Enumeration</dd>
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.4c</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.4c Partitioned and Hard-Disk
+Image Traversal</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>

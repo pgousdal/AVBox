@@ -242,6 +242,15 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     assert disk_images["fat12"]["status"] == "QUALIFIED"
     assert disk_images["amiga_adf"]["ofs"]["status"] == "QUALIFIED"
     assert disk_images["atari_st"]["status"] == "DEFERRED"
+    partitioned = disk_images["partitioned_images"]
+    assert partitioned["mbr"] == {
+        "status": "QUALIFIED",
+        "primary": True,
+        "ebr": "DEFERRED",
+        "sector_size": 512,
+    }
+    assert partitioned["amiga_rdb"]["status"] == "QUALIFIED"
+    assert partitioned["gpt"]["status"] == "DEFERRED"
 
 
 def test_http_contract_auth_errors_and_openapi(tmp_path: Path) -> None:

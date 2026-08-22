@@ -170,20 +170,94 @@ class RABService:
             "recursive_analysis": "QUALIFIED" if recursive is not None else "NOT_AVAILABLE",
             "container_analysis": {
                 "state": "QUALIFIED" if recursive is not None else "UNAVAILABLE",
-                "formats": ["zip", "tar", "gzip", "bzip2", "xz", "lha", "iso9660", "7z", "cab", "arj"],  # noqa: E501
+                "formats": [
+                    "zip",
+                    "tar",
+                    "gzip",
+                    "bzip2",
+                    "xz",
+                    "lha",
+                    "iso9660",
+                    "7z",
+                    "cab",
+                    "arj",
+                ],  # noqa: E501
                 "handlers": {
-                    "zip": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "tar": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "gzip": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "bzip2": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "xz": {"recognize": True, "extract": True, "qualified": True, "handler": "python-stdlib"},  # noqa: E501
-                    "lha": {"recognize": True, "extract": True, "qualified": True, "qualified_methods": ["-lh0-"], "handler": "debian-lhasa"},  # noqa: E501
-                    "iso9660": {"recognize": True, "extract": True, "qualified": True, "handler": "debian-7zip-userspace"},  # noqa: E501
-                    "7z": {"recognize": True, "extract": True, "qualified": True, "handler": "debian-7zip"},  # noqa: E501
-                    "cab": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "debian-7zip"},  # noqa: E501
-                    "arj": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED", "handler": "debian-7zip"},  # noqa: E501
-                    "lzx": {"recognize": False, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
-                    "rar": {"recognize": True, "extract": False, "qualified": False, "status": "DEFERRED"},  # noqa: E501
+                    "zip": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "python-stdlib",
+                    },  # noqa: E501
+                    "tar": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "python-stdlib",
+                    },  # noqa: E501
+                    "gzip": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "python-stdlib",
+                    },  # noqa: E501
+                    "bzip2": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "python-stdlib",
+                    },  # noqa: E501
+                    "xz": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "python-stdlib",
+                    },  # noqa: E501
+                    "lha": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "qualified_methods": ["-lh0-"],
+                        "handler": "debian-lhasa",
+                    },  # noqa: E501
+                    "iso9660": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "debian-7zip-userspace",
+                    },  # noqa: E501
+                    "7z": {
+                        "recognize": True,
+                        "extract": True,
+                        "qualified": True,
+                        "handler": "debian-7zip",
+                    },  # noqa: E501
+                    "cab": {
+                        "recognize": True,
+                        "extract": False,
+                        "qualified": False,
+                        "status": "DEFERRED",
+                        "handler": "debian-7zip",
+                    },  # noqa: E501
+                    "arj": {
+                        "recognize": True,
+                        "extract": False,
+                        "qualified": False,
+                        "status": "DEFERRED",
+                        "handler": "debian-7zip",
+                    },  # noqa: E501
+                    "lzx": {
+                        "recognize": False,
+                        "extract": False,
+                        "qualified": False,
+                        "status": "DEFERRED",
+                    },  # noqa: E501
+                    "rar": {
+                        "recognize": True,
+                        "extract": False,
+                        "qualified": False,
+                        "status": "DEFERRED",
+                    },  # noqa: E501
                 },
                 "budgets": recursive.budget.model_dump(mode="json") if recursive else None,
             },
@@ -201,6 +275,21 @@ class RABService:
                 "apple_dos": {"status": "DEFERRED"},
                 "prodos": {"status": "DEFERRED"},
                 "hfs": {"status": "DEFERRED", "resource_forks_preserved": False},
+                "partitioned_images": {
+                    "mbr": {
+                        "status": "QUALIFIED",
+                        "primary": True,
+                        "ebr": "DEFERRED",
+                        "sector_size": 512,
+                    },
+                    "amiga_rdb": {
+                        "status": "QUALIFIED",
+                        "filesystems": ["OFS", "FFS"],
+                        "embedded_handler_execution": False,
+                    },
+                    "gpt": {"status": "DEFERRED"},
+                    "flat_hdf": {"status": "DEFERRED"},
+                },
             },
             "queue_capacity": self.settings.queue_capacity,
             "child_object_graph": recursive is not None,

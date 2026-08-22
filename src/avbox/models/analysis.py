@@ -52,6 +52,7 @@ class ObjectRelationship(BaseModel):
         "MEMBER_OF",
         "DECOMPRESSED_FROM",
         "FILESYSTEM_ENTRY_OF",
+        "PARTITION_OF",
     ]
     source_sha256: str
     target_sha256: str
@@ -74,6 +75,9 @@ class ExtractionBudget(BaseModel):
     max_member_name_bytes: int
     max_path_depth: int
     max_extraction_time_seconds: int
+    max_partitions_per_disk: int = 32
+    max_materialized_partition_bytes: int = 256 * 1024 * 1024
+    max_total_materialized_partition_bytes: int = 512 * 1024 * 1024
 
 
 class ExtractionUsage(BaseModel):
@@ -82,6 +86,7 @@ class ExtractionUsage(BaseModel):
     total_extracted_bytes: int = 0
     max_depth_reached: int = 0
     limit_events: list[str] = Field(default_factory=list)
+    materialized_partition_bytes: int = 0
 
 
 class RawOutputDescriptor(BaseModel):

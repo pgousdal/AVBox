@@ -8,6 +8,8 @@
 - **M1.4:** bounded userspace container and recursive object analysis (ZIP/tar/gzip/bzip2/xz).
 - **M1.4a:** LHA/LZX and safe userspace ISO/container extensions.
 - **M1.4b:** selected disk-image child enumeration.
+- **M1.4c:** MBR primary and Amiga RDB/HDF traversal into qualified filesystems
+  (implemented; EBR, GPT, and flat HDF deferred).
 - **M1.5:** executable analysis (PE/ELF/Mach-O and historical structures).
 - **M1.6:** document analysis (PDF/OLE/OOXML/RTF and embedded structures).
 - **M1.7:** retro/media validators.

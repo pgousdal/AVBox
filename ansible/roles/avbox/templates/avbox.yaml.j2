@@ -28,6 +28,9 @@ runtime:
   max_member_name_bytes: 4096
   max_path_depth: 32
   max_extraction_time_seconds: 300
+  max_partitions_per_disk: 32
+  max_materialized_partition_bytes: 268435456
+  max_total_materialized_partition_bytes: 536870912
 api:
   host: {{ avbox_api_host }}
   port: {{ avbox_api_port }}

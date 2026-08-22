@@ -11,6 +11,12 @@ Default binding remains `127.0.0.1`. A separate-host deployment must explicitly 
 ## Endpoints
 
 - `GET /api/v1/rab/capabilities`
+
+M1.4c compatibly adds `PARTITION_OF` and structured partition metadata to
+derived objects. Clients can reconstruct disk-to-partition-to-filesystem-entry
+ancestry without parsing descriptions. Capabilities distinguish qualified MBR
+primary/RDB traversal from deferred EBR/GPT/flat-HDF support. No host or scratch
+path is exposed.
 - `GET /api/v1/rab/analysis-profiles`
 - `POST /api/v1/rab/analysis-jobs`
 - `GET /api/v1/rab/analysis-jobs/{job_id}`

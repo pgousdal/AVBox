@@ -36,6 +36,7 @@ from avbox.models import (
 from avbox.scanners.base import ProbeResult
 
 from .disk_images import DiskImageError, parse_disk_image
+from .partitions import BoundedRangeReader, PartitionTableError, parse_partition_table
 
 
 @dataclass
@@ -61,6 +62,7 @@ class ContainerAnalyzer:
         "arj",
         "fat",
         "amiga-adf",
+        "partitioned-disk",
     )
 
     def __init__(self, settings: AppSettings, scans: object):
@@ -76,6 +78,9 @@ class ContainerAnalyzer:
             max_member_name_bytes=settings.runtime.max_member_name_bytes,
             max_path_depth=settings.runtime.max_path_depth,
             max_extraction_time_seconds=settings.runtime.max_extraction_time_seconds,
+            max_partitions_per_disk=settings.runtime.max_partitions_per_disk,
+            max_materialized_partition_bytes=settings.runtime.max_materialized_partition_bytes,
+            max_total_materialized_partition_bytes=settings.runtime.max_total_materialized_partition_bytes,
         )
 
     def probe(self) -> ProbeResult:
@@ -172,12 +177,15 @@ class ContainerAnalyzer:
                             usage,
                             started,
                         )
+        elif kind == "partitioned-disk":
+            self._process_partitioned_disk(job, source, parent, depth, derived_root, usage, started)
         elif kind in {"fat", "amiga-adf"}:
             self._process_disk_image(job, source, parent, depth, derived_root, usage, started)
         elif kind in {"lha", "iso9660", "7z", "cab", "arj"}:
             self._process_external_archive(
                 job, source, parent, kind, depth, derived_root, usage, started
             )
+
         elif kind == "tar":
             with tarfile.open(source, mode="r:*") as archive:
                 members = archive.getmembers()
@@ -240,6 +248,66 @@ class ContainerAnalyzer:
                     usage,
                     started,
                 )
+
+    def _process_partitioned_disk(
+        self,
+        job: ScanJob,
+        source: Path,
+        parent: InputArtifact,
+        depth: int,
+        derived_root: Path,
+        usage: ExtractionUsage,
+        started: float,
+    ) -> None:
+        try:
+            table = parse_partition_table(source, self.budget.max_partitions_per_disk)
+        except PartitionTableError as exc:
+            self._skip(job, usage, "CORRUPT_PARTITION_TABLE")
+            job.errors.append(f"partition-table: {exc}")
+            job.completeness = "PARTIAL_ERROR"
+            return
+        if table is None:
+            return
+        if table.errors:
+            job.errors.extend(f"partition-table: {error}" for error in table.errors)
+            job.completeness = "PARTIAL_ERROR"
+        for partition in table.partitions:
+            usage.children_discovered += 1
+            if not self._can_start_child(job, usage):
+                break
+            if partition.length > self.budget.max_materialized_partition_bytes:
+                self._limit(job, usage, "PARTITION_MATERIALIZATION_LIMIT")
+                continue
+            if (
+                usage.materialized_partition_bytes + partition.length
+                > self.budget.max_total_materialized_partition_bytes
+            ):
+                self._limit(job, usage, "TOTAL_PARTITION_MATERIALIZATION_LIMIT")
+                break
+            metadata = dict(table.metadata)
+            metadata.update(partition.metadata)
+            metadata["root_sha256"] = parent.hashes.sha256
+            with source.open("rb") as stream:
+                view = BoundedRangeReader(
+                    stream, partition.start, partition.length, source.stat().st_size
+                )
+                before = usage.children_materialized
+                self._child(
+                    job,
+                    parent,
+                    cast(IO[bytes], view),
+                    partition.name or f"partition-{partition.index}",
+                    partition.index,
+                    "PARTITION_OF",
+                    depth,
+                    source.stat().st_size,
+                    derived_root,
+                    usage,
+                    started,
+                    metadata,
+                )
+                if usage.children_materialized > before:
+                    usage.materialized_partition_bytes += partition.length
 
     def _process_disk_image(
         self,
@@ -363,7 +431,8 @@ class ContainerAnalyzer:
         )
         usage.max_depth_reached = max(usage.max_depth_reached, child_depth)
         if child_depth >= self.budget.max_recursion_depth:
-            self._limit(job, usage, "RECURSION_LIMIT_REACHED")
+            if self._kind(materialized.path) is not None:
+                self._limit(job, usage, "RECURSION_LIMIT_REACHED")
         else:
             self._process_object(
                 job,
@@ -675,6 +744,12 @@ class ContainerAnalyzer:
                 header = stream.read(8)
         except OSError:
             return None
+        try:
+            if parse_partition_table(source) is not None:
+                return "partitioned-disk"
+        except PartitionTableError:
+            # Strong table evidence exists and its handler must report the damage.
+            return "partitioned-disk"
         # LHA has its method marker in the level-0/1 header.  Detect it before
         # zipfile.is_zipfile(), which deliberately accepts arbitrary prefixes
         # and would otherwise mistake an LHA containing a ZIP member for ZIP.
