@@ -59,6 +59,7 @@ class RuntimeSettings(BaseModel):
     max_partitions_per_disk: int = Field(ge=1, le=256, default=32)
     max_materialized_partition_bytes: int = Field(ge=1, default=256 * 1024 * 1024)
     max_total_materialized_partition_bytes: int = Field(ge=1, default=512 * 1024 * 1024)
+    max_executable_parser_bytes: int = Field(ge=1024, default=64 * 1024 * 1024)
 
 
 class APISettings(BaseModel):

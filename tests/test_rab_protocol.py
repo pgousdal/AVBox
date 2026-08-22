@@ -251,6 +251,11 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     }
     assert partitioned["amiga_rdb"]["status"] == "QUALIFIED"
     assert partitioned["gpt"]["status"] == "DEFERRED"
+    executable = capabilities["executable_analysis"]
+    assert executable["execution"] is False
+    assert executable["formats"]["pe32"]["status"] == "QUALIFIED"
+    assert executable["formats"]["amiga_hunk"]["status"] == "QUALIFIED"
+    assert executable["formats"]["macho_thin"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
 
 
 def test_http_contract_auth_errors_and_openapi(tmp_path: Path) -> None:

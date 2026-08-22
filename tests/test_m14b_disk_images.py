@@ -181,7 +181,9 @@ def make_lh0(name: str, payload: bytes) -> bytes:
     return bytes(header) + payload + b"\0"
 
 
-def make_adf(path: Path, filesystem: str = "OFS") -> dict[str, bytes]:
+def make_adf(
+    path: Path, filesystem: str = "OFS", extra_entries: dict[str, bytes] | None = None
+) -> dict[str, bytes]:
     image = bytearray(901120)
     image[:4] = b"DOS\x00" if filesystem == "OFS" else b"DOS\x01"
     root_key = 880
@@ -198,6 +200,7 @@ def make_adf(path: Path, filesystem: str = "OFS") -> dict[str, bytes]:
         "YARA-MARKER": (b"A" * (480 if filesystem == "OFS" else 500))
         + b"AVBOX_M1_HARMLESS_POSITIVE_7F45D8\n",
     }
+    entries.update(extra_entries or {})
 
     def put_header(key: int, name: str, kind: int, parent: int, payload: bytes = b"") -> bytearray:
         nonlocal free_key
@@ -267,7 +270,7 @@ def make_adf(path: Path, filesystem: str = "OFS") -> dict[str, bytes]:
     image[child_key * 512 : (child_key + 1) * 512] = child
     image[drawer_key * 512 : (drawer_key + 1) * 512] = drawer
     root_members: list[tuple[int, bytearray, str]] = [(drawer_key, drawer, "DRAWER")]
-    for name in ("ROOT.TXT", "DUP1", "DUP2", "ARCHIVE.LHA", "YARA-MARKER"):
+    for name in (value for value in entries if "/" not in value):
         key = free_key
         free_key += 1
         header = put_header(key, name, -3, root_key, entries[name])

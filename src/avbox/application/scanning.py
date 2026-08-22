@@ -118,6 +118,8 @@ class ScanService:
                             job.errors.extend(
                                 f"{name}: {error}" for error in generic_result.errors
                             )
+                            if name == "executable":
+                                job.completeness = "PARTIAL_ERROR"
                         self.jobs.save_scanner_status(
                             ScannerRuntimeStatus(
                                 scanner_id=name,

@@ -9,6 +9,11 @@ not a separate job system. A disk produces exact byte-bearing partition objects
 through `PARTITION_OF`; verified filesystem files use `FILESYSTEM_ENTRY_OF`.
 Every layer shares one recursive budget state and private cleanup tree.
 
+M1.5 registers executable structure as another generic analyzer. Standalone and
+recursive child jobs therefore use the same identity, result envelope, source
+immutability, cleanup, and relationship provenance. Sections/segments/hunks
+remain observations and do not become graph objects.
+
 M1's `ScanService` selects only applicable file adapters. `SystemDetectorAdapter` is a separate contract for chkrootkit/rkhunter host inspection. Scanner execution remains replaceable and routes, templates, and CLI contain no detector-specific parsing.
 
 Operational versions, probe status, definition state, and scan results are runtime data. Product identity, declared capabilities, installation provenance, and qualification intent remain Git-versioned YAML. Existing bootstrap-rescue tooling remains an external preservation producer, not an AVBox scanner or dependency.

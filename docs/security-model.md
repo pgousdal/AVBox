@@ -9,6 +9,12 @@ names and boot flags are untrusted metadata, not filesystem authority or
 security evidence. Repair, recovery, deleted-file, slack, and unallocated-space
 processing are absent.
 
+Executable parsing is structural and non-executing. AVBox does not map images,
+apply relocations, invoke loaders, validate signatures as trust, disassemble,
+unpack, emulate, or repair. Structural anomalies, entropy, imports, timestamps,
+and section names cannot create a security verdict. Parser reads/counts are
+bounded and source hashes are verified unchanged.
+
 Production directories are owned by unprivileged `avbox` with mode 0700. Staging and quarantine should be separate `nodev,nosuid,noexec` mounts; the included script verifies this. They must not be shared over SMB/NFS.
 
 Clean working bytes are deleted after scanning by later lifecycle orchestration. Malicious, suspicious and PUA bytes may enter immutable content-addressed quarantine. There is no automatic redistribution.

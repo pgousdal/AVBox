@@ -441,4 +441,7 @@ def build_generic_analyzers(settings: AppSettings) -> dict[str, GenericAnalyzer]
     from avbox.analyzers.static import build_static_analyzers
 
     values.extend(build_static_analyzers(settings).values())
+    from avbox.analyzers.executable import ExecutableAnalyzer
+
+    values.append(ExecutableAnalyzer(settings.runtime.max_executable_parser_bytes))
     return {value.analyzer_id: value for value in values}

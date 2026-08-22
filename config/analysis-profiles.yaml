@@ -17,6 +17,11 @@ profiles:
     enabled: true
   - id: recursive-default
     version: 1
-    analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, generic-metadata, similarity, clamav, yara, container]
-    capabilities: [object_identity, static_characteristics, security_detection, container_discovery, recursive_analysis]
+    analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, generic-metadata, similarity, executable, clamav, yara, container]
+    capabilities: [object_identity, static_characteristics, executable_structure, security_detection, container_discovery, recursive_analysis]
+    enabled: true
+  - id: executable-default
+    version: 1
+    analyzers: [identity, basic-metadata, file-type, strings, byte-statistics, executable]
+    capabilities: [object_identity, file_type, static_characteristics, executable_structure]
     enabled: true

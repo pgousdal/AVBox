@@ -17,6 +17,13 @@ derived objects. Clients can reconstruct disk-to-partition-to-filesystem-entry
 ancestry without parsing descriptions. Capabilities distinguish qualified MBR
 primary/RDB traversal from deferred EBR/GPT/flat-HDF support. No host or scratch
 path is exposed.
+
+M1.5 adds structured `executable.*`, `pe.*`, `elf.*`, `mz.*`, `hunk.*`, and
+`macho.*` observations plus conservative assessments. The new
+`executable-default@1` profile is additive. `recursive-default@1` also requests
+the executable analyzer for root and child objects; relationships and object
+identity remain unchanged. Capability states distinguish qualification from
+mere implementation.
 - `GET /api/v1/rab/analysis-profiles`
 - `POST /api/v1/rab/analysis-jobs`
 - `GET /api/v1/rab/analysis-jobs/{job_id}`

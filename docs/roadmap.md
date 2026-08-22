@@ -10,7 +10,8 @@
 - **M1.4b:** selected disk-image child enumeration.
 - **M1.4c:** MBR primary and Amiga RDB/HDF traversal into qualified filesystems
   (implemented; EBR, GPT, and flat HDF deferred).
-- **M1.5:** executable analysis (PE/ELF/Mach-O and historical structures).
+- **M1.5:** bounded PE/ELF/DOS MZ/Amiga HUNK structural analysis
+  (implemented; Mach-O and NE/LE/LX qualification deferred).
 - **M1.6:** document analysis (PDF/OLE/OOXML/RTF and embedded structures).
 - **M1.7:** retro/media validators.
 - **M2:** Windows worker: Defender and ClamAV first; qualify Avast/AVG/Avira/Bitdefender Free and commercial ESET/Dr.Web later.

@@ -126,9 +126,8 @@ def create_app(context: Context | None = None) -> FastAPI:
             if recursive is not None
             else "not available"
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.4c</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.4c Partitioned and Hard-Disk
-Image Traversal</dd>
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.5</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.5 Executable Static Analysis</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>

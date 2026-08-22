@@ -16,6 +16,7 @@ class ScannerClass(StrEnum):
     BYTE_STATISTICS_ANALYZER = "byte_statistics_analyzer"
     SIMILARITY_ANALYZER = "similarity_analyzer"
     CONTAINER_ANALYZER = "container_analyzer"
+    EXECUTABLE_ANALYZER = "executable_analyzer"
 
 
 class Confidence(StrEnum):

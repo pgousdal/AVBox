@@ -291,6 +291,35 @@ class RABService:
                     "flat_hdf": {"status": "DEFERRED"},
                 },
             },
+            "executable_analysis": {
+                "analyzer": "executable",
+                "execution": False,
+                "formats": {
+                    "pe32": {"status": "QUALIFIED", "architectures": ["I386", "other-coff"]},
+                    "pe32_plus": {"status": "QUALIFIED", "architectures": ["AMD64", "other-coff"]},
+                    "elf32": {"status": "QUALIFIED", "architectures": ["I386", "other-elf"]},
+                    "elf64": {"status": "QUALIFIED", "architectures": ["X86_64", "other-elf"]},
+                    "dos_mz": {"status": "QUALIFIED"},
+                    "ne": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "le": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "lx": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "macho_thin": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "macho_fat": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "amiga_hunk": {
+                        "status": "QUALIFIED",
+                        "architecture": "M68K",
+                        "relocations": True,
+                        "symbols": True,
+                    },
+                },
+                "limits": {
+                    "maximum_parser_bytes": (
+                        getattr(self.scans.generic_analyzers["executable"], "max_bytes", None)
+                        if "executable" in self.scans.generic_analyzers
+                        else None
+                    )
+                },
+            },
             "queue_capacity": self.settings.queue_capacity,
             "child_object_graph": recursive is not None,
         }
