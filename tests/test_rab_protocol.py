@@ -256,6 +256,25 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     assert executable["formats"]["pe32"]["status"] == "QUALIFIED"
     assert executable["formats"]["amiga_hunk"]["status"] == "QUALIFIED"
     assert executable["formats"]["macho_thin"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
+    documents = capabilities["document_analysis"]
+    assert documents["execution"] is False
+    assert documents["rendering"] is False
+    assert documents["network_retrieval"] is False
+    assert documents["formats"]["pdf"]["status"] == "QUALIFIED"
+    assert documents["formats"]["ole_cfb"]["status"] == "QUALIFIED"
+    assert documents["formats"]["ooxml_docx"]["status"] == "QUALIFIED"
+    assert documents["formats"]["ooxml_xlsx"]["status"] == "QUALIFIED"
+    assert documents["formats"]["ooxml_pptx"]["status"] == "QUALIFIED"
+    assert documents["formats"]["ooxml_macro_enabled"]["status"] == "QUALIFIED"
+    assert documents["formats"]["rtf"]["status"] == "QUALIFIED"
+    assert documents["formats"]["odf"]["status"] == "QUALIFIED"
+    assert documents["formats"]["odf_odt"]["status"] == "QUALIFIED"
+    assert (
+        documents["formats"]["odf_ods"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
+    )
+    assert (
+        documents["formats"]["odf_odp"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
+    )
 
 
 def test_http_contract_auth_errors_and_openapi(tmp_path: Path) -> None:

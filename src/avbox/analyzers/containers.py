@@ -36,6 +36,7 @@ from avbox.models import (
 from avbox.scanners.base import ProbeResult
 
 from .disk_images import DiskImageError, parse_disk_image
+from .document import DocumentError, parse_document
 from .partitions import BoundedRangeReader, PartitionTableError, parse_partition_table
 
 
@@ -133,6 +134,42 @@ class ContainerAnalyzer:
             self._limit(job, usage, "EXTRACTION_TIME_LIMIT")
             return
         if depth >= self.budget.max_recursion_depth:
+            return
+        try:
+            document = (
+                parse_document(source, self.settings.runtime)
+                if source.stat().st_size <= self.settings.runtime.max_document_parser_bytes
+                else None
+            )
+        except (DocumentError, OSError, zipfile.BadZipFile) as exc:
+            job.errors.append(f"document: {type(exc).__name__}: {exc}")
+            job.completeness = "PARTIAL_ERROR"
+            document = None
+        if document is not None:
+            if document.partial and job.completeness == "COMPLETE":
+                job.completeness = document.partial.upper()
+            if len(document.children) > self.budget.max_children_per_object:
+                self._limit(job, usage, "CHILD_COUNT_LIMIT")
+            for index, child in enumerate(document.children[: self.budget.max_children_per_object]):
+                usage.children_discovered += 1
+                if not self._can_start_child(job, usage):
+                    break
+                self._child(
+                    job,
+                    parent,
+                    io.BytesIO(child.data),
+                    child.name,
+                    index,
+                    "EMBEDDED_FILE_OF",
+                    depth,
+                    source.stat().st_size,
+                    derived_root,
+                    usage,
+                    started,
+                    child.metadata,
+                )
+            # Structured ZIP documents expose only meaningful payload objects,
+            # not every XML/metadata implementation part.
             return
         kind = self._kind(source)
         if kind is None:

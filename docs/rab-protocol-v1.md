@@ -24,6 +24,12 @@ M1.5 adds structured `executable.*`, `pe.*`, `elf.*`, `mz.*`, `hunk.*`, and
 the executable analyzer for root and child objects; relationships and object
 identity remain unchanged. Capability states distinguish qualification from
 mere implementation.
+
+M1.6 adds `document-default@1`, `document.*`, PDF, CFB, OOXML, RTF, and ODF
+observations, and `EMBEDDED_FILE_OF`. Capabilities expose a truthful per-format
+qualification matrix. External URLs are metadata-only. Macro, JavaScript,
+encryption, signature, and embedded-object evidence remains observation or
+assessment data and never manufactures a security verdict.
 - `GET /api/v1/rab/analysis-profiles`
 - `POST /api/v1/rab/analysis-jobs`
 - `GET /api/v1/rab/analysis-jobs/{job_id}`

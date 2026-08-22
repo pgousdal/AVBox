@@ -4,6 +4,10 @@ AVBox has three boundaries: the **control plane** owns jobs, YAML registry valid
 
 Business logic lives in application services shared by CLI and API. YAML is catalog truth. SQLite contains only mutable operational job state and may later migrate behind `JobService` without changing registry semantics.
 
+M1.6 document parsing is bounded, read-only, in-process structural analysis.
+Meaningful embedded files join the existing recursive object graph through
+`EMBEDDED_FILE_OF`; package metadata parts and bookkeeping streams do not.
+
 M1.4c partition discovery is a bounded range layer inside `ContainerAnalyzer`,
 not a separate job system. A disk produces exact byte-bearing partition objects
 through `PARTITION_OF`; verified filesystem files use `FILESYSTEM_ENTRY_OF`.

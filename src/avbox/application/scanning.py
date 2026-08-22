@@ -112,14 +112,26 @@ class ScanService:
                     try:
                         generic_result = generic.analyze(artifact, source, str(job.job_id))
                         job.analyzer_results.append(generic_result)
+                        if name == "document" and generic_result.native_status.startswith(
+                            "partial_"
+                        ):
+                            job.completeness = generic_result.native_status.upper()
                         if generic_result.raw_output:
                             job.raw_output_refs.append(generic_result.raw_output.raw_output_id)
                         if generic_result.errors:
                             job.errors.extend(
                                 f"{name}: {error}" for error in generic_result.errors
                             )
-                            if name == "executable":
-                                job.completeness = "PARTIAL_ERROR"
+                            if name in {"executable", "document"} and not (
+                                name == "document"
+                                and generic_result.native_status.startswith("partial_")
+                            ):
+                                job.completeness = (
+                                    "PARTIAL_LIMIT"
+                                    if generic_result.native_status
+                                    in {"partial_limit", "unsupported_limit"}
+                                    else "PARTIAL_ERROR"
+                                )
                         self.jobs.save_scanner_status(
                             ScannerRuntimeStatus(
                                 scanner_id=name,

@@ -320,6 +320,34 @@ class RABService:
                     )
                 },
             },
+            "document_analysis": {
+                "analyzer": "document",
+                "execution": False,
+                "rendering": False,
+                "network_retrieval": False,
+                "formats": {
+                    "pdf": {"status": "QUALIFIED"},
+                    "ole_cfb": {"status": "QUALIFIED"},
+                    "ooxml_docx": {"status": "QUALIFIED"},
+                    "ooxml_xlsx": {"status": "QUALIFIED"},
+                    "ooxml_pptx": {"status": "QUALIFIED"},
+                    "ooxml_macro_enabled": {"status": "QUALIFIED"},
+                    "rtf": {"status": "QUALIFIED"},
+                    "odf": {"status": "QUALIFIED", "qualified_variants": ["ODT"]},
+                    "odf_odt": {"status": "QUALIFIED"},
+                    "odf_ods": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                    "odf_odp": {"status": "IMPLEMENTED_NOT_QUALIFIED"},
+                },
+                "meaningful_embedded_payloads": True,
+                "relationship": "EMBEDDED_FILE_OF",
+                "limits": {
+                    "maximum_parser_bytes": (
+                        getattr(self.scans.generic_analyzers["document"], "max_bytes", None)
+                        if "document" in self.scans.generic_analyzers
+                        else None
+                    )
+                },
+            },
             "queue_capacity": self.settings.queue_capacity,
             "child_object_graph": recursive is not None,
         }

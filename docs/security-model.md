@@ -46,3 +46,8 @@ and time budgets defend against resource amplification. Derived children are
 transient analysis objects with independent hashes and unknown rights; clean
 derivatives are removed and security-positive derivatives may enter the
 existing quarantine with their graph provenance.
+Document static analysis never renders content, follows external references,
+or executes PDF JavaScript, VBA, scripts, embedded objects, or submitted bytes.
+Active-content and external-reference evidence is not a security verdict.
+Encrypted documents retain safe outer evidence and remain partially unsupported
+without password guessing.

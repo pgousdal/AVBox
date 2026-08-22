@@ -4,6 +4,8 @@ AVBox is a private, personal, LAN-only digital-object analysis appliance. M1.4c
 adds bounded userspace MBR and Amiga RDB partition traversal to the existing
 recursive object graph and authenticated asynchronous RAB Protocol v1 jobs.
 M1.5 adds non-executing PE, ELF, DOS MZ, and Amiga HUNK structural analysis.
+M1.6 adds bounded, non-rendering PDF, OLE/CFB, OOXML, RTF, and ODT structural
+analysis with meaningful embedded payloads entering the recursive object graph.
 
 AVBox is not a public scanning service, SaaS product, malware execution sandbox, or archive authority. RAB is the intended long-term preservation authority. The existing `avbox-bootstrap` scripts and reports remain time-critical staging infrastructure, not registry truth.
 
@@ -27,5 +29,7 @@ See [architecture](docs/architecture.md), [security model](docs/security-model.m
 [M1.4c partitioned images](docs/m14c-partitioned-images.md).
 Executable parsing is documented in
 [M1.5 executable static analysis](docs/m15-executable-static-analysis.md).
+Document parsing is documented in
+[M1.6 document static analysis](docs/m16-document-static-analysis.md).
 
 RAB integration is documented in [RAB Protocol v1](docs/rab-protocol-v1.md). Protocol credentials are external secrets; never commit them.

@@ -12,7 +12,9 @@
   (implemented; EBR, GPT, and flat HDF deferred).
 - **M1.5:** bounded PE/ELF/DOS MZ/Amiga HUNK structural analysis
   (implemented; Mach-O and NE/LE/LX qualification deferred).
-- **M1.6:** document analysis (PDF/OLE/OOXML/RTF and embedded structures).
+- **M1.6:** bounded document static analysis, qualified for PDF, OLE/CFB,
+  DOCX/XLSX/PPTX, macro-enabled OOXML, RTF, and ODT; ODS/ODP are implemented
+  but not qualified.
 - **M1.7:** retro/media validators.
 - **M2:** Windows worker: Defender and ClamAV first; qualify Avast/AVG/Avira/Bitdefender Free and commercial ESET/Dr.Web later.
 - **M3:** safe submission and durable reports.
@@ -23,3 +25,4 @@
 - **M8+:** Apple II/IIGS, Classic Mac, RISC OS, MSX, PC-98 and other qualified platforms.
 
 Safety and preservation evidence may justify splitting or reordering milestones.
+M1.7 has not started.

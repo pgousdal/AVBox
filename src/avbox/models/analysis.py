@@ -53,6 +53,7 @@ class ObjectRelationship(BaseModel):
         "DECOMPRESSED_FROM",
         "FILESYSTEM_ENTRY_OF",
         "PARTITION_OF",
+        "EMBEDDED_FILE_OF",
     ]
     source_sha256: str
     target_sha256: str
