@@ -187,6 +187,21 @@ class RABService:
                 },
                 "budgets": recursive.budget.model_dump(mode="json") if recursive else None,
             },
+            "disk_images": {
+                "fat12": {"status": "QUALIFIED", "handler": "avbox-read-only-fat"},
+                "fat16": {"status": "QUALIFIED", "handler": "avbox-read-only-fat"},
+                "fat32": {"status": "QUALIFIED", "handler": "avbox-read-only-fat"},
+                "amiga_adf": {
+                    "ofs": {"status": "QUALIFIED", "dos_types": ["DOS\\0"]},
+                    "ffs": {"status": "QUALIFIED", "dos_types": ["DOS\\1"]},
+                    "handler": "avbox-read-only-adf",
+                },
+                "atari_st": {"status": "DEFERRED"},
+                "atari_msa": {"status": "DEFERRED"},
+                "apple_dos": {"status": "DEFERRED"},
+                "prodos": {"status": "DEFERRED"},
+                "hfs": {"status": "DEFERRED", "resource_forks_preserved": False},
+            },
             "queue_capacity": self.settings.queue_capacity,
             "child_object_graph": recursive is not None,
         }

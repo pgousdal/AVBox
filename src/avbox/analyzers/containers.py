@@ -5,6 +5,7 @@ import gzip
 import io
 import lzma
 import os
+import re
 import selectors
 import shutil
 import subprocess
@@ -34,6 +35,8 @@ from avbox.models import (
 )
 from avbox.scanners.base import ProbeResult
 
+from .disk_images import DiskImageError, parse_disk_image
+
 
 @dataclass
 class _Materialized:
@@ -45,7 +48,20 @@ class ContainerAnalyzer:
     """Bounded userspace extraction and recursive application of existing analyzers."""
 
     analyzer_id = "container"
-    supported_formats = ("zip", "tar", "gzip", "bzip2", "xz", "lha", "iso9660", "7z", "cab", "arj")
+    supported_formats = (
+        "zip",
+        "tar",
+        "gzip",
+        "bzip2",
+        "xz",
+        "lha",
+        "iso9660",
+        "7z",
+        "cab",
+        "arj",
+        "fat",
+        "amiga-adf",
+    )
 
     def __init__(self, settings: AppSettings, scans: object):
         self.settings = settings
@@ -155,7 +171,9 @@ class ContainerAnalyzer:
                             derived_root,
                             usage,
                             started,
-                                )
+                        )
+        elif kind in {"fat", "amiga-adf"}:
+            self._process_disk_image(job, source, parent, depth, derived_root, usage, started)
         elif kind in {"lha", "iso9660", "7z", "cab", "arj"}:
             self._process_external_archive(
                 job, source, parent, kind, depth, derived_root, usage, started
@@ -222,6 +240,58 @@ class ContainerAnalyzer:
                     usage,
                     started,
                 )
+
+    def _process_disk_image(
+        self,
+        job: ScanJob,
+        source: Path,
+        parent: InputArtifact,
+        depth: int,
+        derived_root: Path,
+        usage: ExtractionUsage,
+        started: float,
+    ) -> None:
+        """Enumerate a recognized filesystem directly from immutable image bytes."""
+        try:
+            image = parse_disk_image(source)
+        except DiskImageError as exc:
+            self._skip(job, usage, "CORRUPT_FILESYSTEM")
+            job.errors.append(f"disk-image: {type(exc).__name__}: {exc}")
+            job.completeness = "PARTIAL_ERROR"
+            return
+        if image is None:
+            return
+        if len(image.entries) > self.budget.max_children_per_object:
+            self._limit(job, usage, "CHILD_COUNT_LIMIT")
+        for entry in image.entries[: self.budget.max_children_per_object]:
+            usage.children_discovered += 1
+            if not self._can_start_child(job, usage):
+                break
+            if not self._safe_name(entry.path):
+                self._skip(job, usage, "UNSAFE_MEMBER_PATH")
+                continue
+            metadata = dict(image.metadata)
+            metadata.update(
+                {
+                    "logical_filesystem_path": entry.path,
+                    "entry_type": entry.entry_type,
+                    "byte_size": len(entry.data),
+                }
+            )
+            self._child(
+                job,
+                parent,
+                io.BytesIO(entry.data),
+                entry.path,
+                entry.index,
+                "FILESYSTEM_ENTRY_OF",
+                depth,
+                source.stat().st_size,
+                derived_root,
+                usage,
+                started,
+                metadata,
+            )
 
     def _child(
         self,
@@ -306,8 +376,15 @@ class ContainerAnalyzer:
             )
 
     def _process_external_archive(
-        self, job: ScanJob, source: Path, parent: InputArtifact, kind: str, depth: int,
-        derived_root: Path, usage: ExtractionUsage, started: float,
+        self,
+        job: ScanJob,
+        source: Path,
+        parent: InputArtifact,
+        kind: str,
+        depth: int,
+        derived_root: Path,
+        usage: ExtractionUsage,
+        started: float,
     ) -> None:
         """Enumerate and extract through Debian 7z/lhasa without mounting or shelling."""
         if kind == "lha":
@@ -412,9 +489,20 @@ class ContainerAnalyzer:
                     "declared_size": declared,
                     "filesystem_view": "ISO9660" if kind == "iso9660" else None,
                 }
-                self._child(job, parent, io.BytesIO(output), name, index,
-                            "FILESYSTEM_ENTRY_OF" if kind == "iso9660" else "CONTAINS",
-                            depth, source.stat().st_size, derived_root, usage, started, metadata)
+                self._child(
+                    job,
+                    parent,
+                    io.BytesIO(output),
+                    name,
+                    index,
+                    "FILESYSTEM_ENTRY_OF" if kind == "iso9660" else "CONTAINS",
+                    depth,
+                    source.stat().st_size,
+                    derived_root,
+                    usage,
+                    started,
+                    metadata,
+                )
 
     @staticmethod
     def _tool_env() -> dict[str, str]:
@@ -438,9 +526,7 @@ class ContainerAnalyzer:
             selector = selectors.DefaultSelector()
             selector.register(process.stdout, selectors.EVENT_READ)
             while True:
-                remaining = self.budget.max_extraction_time_seconds - (
-                    time.monotonic() - started
-                )
+                remaining = self.budget.max_extraction_time_seconds - (time.monotonic() - started)
                 if remaining <= 0 or not selector.select(remaining):
                     process.kill()
                     process.wait()
@@ -508,14 +594,13 @@ class ContainerAnalyzer:
         for line in output.splitlines():
             fields = line.split()
             if len(fields) >= 5 and fields[0] == "[generic]":
-                method = next(
-                    (value for value in fields[1:-1] if value.startswith("-lh")), None
-                )
+                method = next((value for value in fields[1:-1] if value.startswith("-lh")), None)
                 numeric = [int(value) for value in fields[1:-1] if value.isdigit()]
                 size = numeric[1] if len(numeric) >= 2 else (numeric[0] if numeric else None)
                 if size is None:
                     continue
-                name = line[68:].strip() if len(line) > 68 else fields[-1]
+                match = re.search(r"-lh\S*-\s+\S+\s+.{12}\s+(.+)$", line)
+                name = match.group(1) if match else line[68:].strip()
                 rows.append(
                     {
                         "method": method,
@@ -595,6 +680,14 @@ class ContainerAnalyzer:
         # and would otherwise mistake an LHA containing a ZIP member for ZIP.
         if len(header) >= 7 and header[2:7].startswith(b"-lh"):
             return "lha"
+        try:
+            image = parse_disk_image(source)
+        except DiskImageError:
+            # A strong boot/root structure was recognized and later traversal
+            # found damage. Let the handler preserve an exact partial result.
+            return "amiga-adf" if header.startswith(b"DOS") else "fat"
+        if image is not None:
+            return "amiga-adf" if image.format == "amiga-adf" else "fat"
         if zipfile.is_zipfile(source):
             return "zip"
         if header.startswith(b"PK"):

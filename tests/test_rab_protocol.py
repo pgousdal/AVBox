@@ -237,6 +237,11 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     assert capabilities["qualified_object_analyzers"] == ["clamav", "yara"]
     assert "yara-x" not in capabilities["qualified_object_analyzers"]
     assert capabilities["reference_resolution"] == "NOT_IMPLEMENTED"
+    disk_images = capabilities["disk_images"]
+    assert isinstance(disk_images, dict)
+    assert disk_images["fat12"]["status"] == "QUALIFIED"
+    assert disk_images["amiga_adf"]["ofs"]["status"] == "QUALIFIED"
+    assert disk_images["atari_st"]["status"] == "DEFERRED"
 
 
 def test_http_contract_auth_errors_and_openapi(tmp_path: Path) -> None:

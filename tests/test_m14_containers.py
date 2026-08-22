@@ -91,9 +91,7 @@ def test_zip_child_identity_relationship_and_cleanup(tmp_path: Path) -> None:
     assert child.object.sha256 == hashlib.sha256(b"hello").hexdigest()
     assert job.relationships[0].relationship == "CONTAINS"
     assert job.relationships[0].target_sha256 == child.object.sha256
-    assert not (
-        tmp_path / "avbox" / "staging" / str(job.job_id) / "derived"
-    ).exists()
+    assert not (tmp_path / "avbox" / "staging" / str(job.job_id) / "derived").exists()
 
 
 def test_nested_zip_and_depth_limit(tmp_path: Path) -> None:
@@ -117,9 +115,9 @@ def test_lha_header_precedes_embedded_zip_probe(tmp_path: Path) -> None:
 def test_debian_lhasa_verbose_listing_parser() -> None:
     listing = (
         "[generic]                   18      18 100.0% -lh0- f4e8"
-        "              hello file.txt\n"
+        " Aug 21 12:00 hello file.txt\n"
         "[generic]                  137     137 100.0% -lh5- 8773"
-        "              nested/inner.zip\n"
+        " Aug 21 12:00 nested/inner.zip\n"
     )
     assert ContainerAnalyzer._parse_lha_listing(listing) == [
         {"method": "-lh0-", "size": 18, "name": "hello file.txt", "directory": False},
