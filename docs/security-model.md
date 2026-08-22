@@ -51,3 +51,9 @@ or executes PDF JavaScript, VBA, scripts, embedded objects, or submitted bytes.
 Active-content and external-reference evidence is not a security verdict.
 Encrypted documents retain safe outer evidence and remain partially unsupported
 without password guessing.
+# M1.7 validator constraints
+
+Structural validators are read-only, userspace-only, bounded and non-executing.
+They do not mount media, create loop devices, use FUSE, repair bytes, load Amiga
+filesystem handlers, access the network, or translate corruption into a security
+verdict.

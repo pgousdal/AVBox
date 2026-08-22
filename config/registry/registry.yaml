@@ -39,6 +39,7 @@ products:
   - {id: avbox-container, vendor: AVBox, product: Bounded Container Analysis, scanner_class: container_analyzer, license: MIT}
   - {id: avbox-executable, vendor: AVBox, product: Bounded Executable Structure, scanner_class: executable_analyzer, license: MIT}
   - {id: avbox-document, vendor: AVBox, product: Bounded Document Structure, scanner_class: document_analyzer, license: MIT}
+  - {id: avbox-structural-validator, vendor: AVBox, product: Retro Media Structural Validator, scanner_class: structural_validator, license: MIT, notes: Built-in read-only bounded M1.7 validator; not an antivirus engine.}
   - {id: sophos-sav-linux, vendor: Sophos, product: Sophos Anti-Virus for Linux 9.x, scanner_class: antivirus_engine, notes: Historical artifacts and runtime qualification incomplete.}
   - {id: fprot-linux, vendor: FRISK, product: F-PROT for Linux, scanner_class: antivirus_engine, notes: Final release and definitions remain artifact-wanted.}
   - {id: mcafee-dos, vendor: McAfee, product: VirusScan/SCAN for DOS, scanner_class: antivirus_engine, notes: Exact engine and definition pairing incomplete.}

@@ -64,6 +64,8 @@ class RuntimeSettings(BaseModel):
     max_document_components: int = Field(ge=1, le=100000, default=10000)
     max_document_xml_depth: int = Field(ge=1, le=1024, default=64)
     max_rtf_group_depth: int = Field(ge=1, le=10000, default=256)
+    max_structural_validation_bytes: int = Field(ge=1024, default=256 * 1024 * 1024)
+    max_structural_validation_nodes: int = Field(ge=1, le=10_000_000, default=100_000)
 
 
 class APISettings(BaseModel):

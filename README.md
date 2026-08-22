@@ -1,5 +1,8 @@
 # AVBox
 
+Milestone M1.7 adds read-only retro/media structural validation. See
+[`docs/m17-retro-media-validation.md`](docs/m17-retro-media-validation.md).
+
 AVBox is a private, personal, LAN-only digital-object analysis appliance. M1.4c
 adds bounded userspace MBR and Amiga RDB partition traversal to the existing
 recursive object graph and authenticated asynchronous RAB Protocol v1 jobs.

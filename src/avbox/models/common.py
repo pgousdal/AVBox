@@ -18,6 +18,7 @@ class ScannerClass(StrEnum):
     CONTAINER_ANALYZER = "container_analyzer"
     EXECUTABLE_ANALYZER = "executable_analyzer"
     DOCUMENT_ANALYZER = "document_analyzer"
+    STRUCTURAL_VALIDATOR = "structural_validator"
 
 
 class Confidence(StrEnum):
@@ -41,6 +42,18 @@ class Verdict(StrEnum):
     ERROR = "ERROR"
     UNSUPPORTED = "UNSUPPORTED"
     NOT_SCANNED = "NOT_SCANNED"
+    UNKNOWN = "UNKNOWN"
+
+
+class StructuralState(StrEnum):
+    VALID = "VALID"
+    VALID_WITH_WARNINGS = "VALID_WITH_WARNINGS"
+    DAMAGED = "DAMAGED"
+    CORRUPT = "CORRUPT"
+    TRUNCATED = "TRUNCATED"
+    NON_STANDARD = "NON_STANDARD"
+    PARTIAL = "PARTIAL"
+    UNSUPPORTED = "UNSUPPORTED"
     UNKNOWN = "UNKNOWN"
 
 

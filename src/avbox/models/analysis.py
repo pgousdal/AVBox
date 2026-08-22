@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from .common import Confidence, QualificationState, ScannerClass, Verdict
+from .common import Confidence, QualificationState, ScannerClass, StructuralState, Verdict
 
 
 class Observation(BaseModel):
@@ -97,6 +97,23 @@ class RawOutputDescriptor(BaseModel):
     media_type: Literal["text/plain"] = "text/plain"
 
 
+class StructuralValidation(BaseModel):
+    validator: str
+    format: str
+    variant: str | None = None
+    state: StructuralState
+    observations: list[Observation] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
+    assessments: list[Assessment] = Field(default_factory=list)
+    completeness: str = "COMPLETE"
+    confidence: Confidence = Confidence.HIGH
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    validator_version: str
+    duration_seconds: float
+    error_state: str | None = None
+    limit_state: str | None = None
+
+
 class AnalyzerResult(BaseModel):
     analyzer_id: str
     analyzer_class: ScannerClass | str
@@ -118,6 +135,7 @@ class AnalyzerResult(BaseModel):
     assessments: list[Assessment] = Field(default_factory=list)
     raw_output: RawOutputDescriptor | None = None
     errors: list[str] = Field(default_factory=list)
+    structural_validation: StructuralValidation | None = None
 
 
 class DerivedObject(BaseModel):

@@ -9,6 +9,7 @@ from .analysis import (
     Observation,
     PreservationContext,
     RawOutputDescriptor,
+    StructuralValidation,
 )
 from .artifacts import Hashes, InputArtifact, RepairRecord, Rights
 from .common import (
@@ -21,6 +22,7 @@ from .common import (
     RightsStatus,
     ScannerClass,
     ScanPolicy,
+    StructuralState,
     Verdict,
 )
 from .jobs import JobStatus, ScanJob, ScannerResult
@@ -51,6 +53,8 @@ __all__ = [
     "RightsStatus",
     "ScanJob",
     "ScannerClass",
+    "StructuralState",
+    "StructuralValidation",
     "ScannerResult",
     "ScannerRuntimeStatus",
     "PROTOCOL_VERSION",

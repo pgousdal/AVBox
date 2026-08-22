@@ -447,4 +447,12 @@ def build_generic_analyzers(settings: AppSettings) -> dict[str, GenericAnalyzer]
     from avbox.analyzers.document import DocumentAnalyzer
 
     values.append(DocumentAnalyzer(settings.runtime))
+    from avbox.analyzers.structural import StructuralValidator
+
+    values.append(
+        StructuralValidator(
+            settings.runtime.max_structural_validation_bytes,
+            settings.runtime.max_structural_validation_nodes,
+        )
+    )
     return {value.analyzer_id: value for value in values}

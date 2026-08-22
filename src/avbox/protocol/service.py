@@ -291,6 +291,56 @@ class RABService:
                     "flat_hdf": {"status": "DEFERRED"},
                 },
             },
+            "structural_validation": {
+                "analyzer": "structural-validator",
+                "profile": "preservation-validation@1",
+                "security_verdict_emitted": False,
+                "read_only": True,
+                "repair": False,
+                "mount": False,
+                "execution": False,
+                "network": False,
+                "formats": {
+                    "adf": {
+                        "ofs": {"status": "QUALIFIED", "dos_types": ["DOS\\0"]},
+                        "ffs": {"status": "QUALIFIED", "dos_types": ["DOS\\1"]},
+                        "international": {"status": "RECOGNIZED_NOT_QUALIFIED"},
+                        "directory_cache": {"status": "RECOGNIZED_NOT_QUALIFIED"},
+                    },
+                    "fat12": {"status": "QUALIFIED"},
+                    "fat16": {"status": "QUALIFIED"},
+                    "fat32": {"status": "QUALIFIED"},
+                    "amiga_rdb": {
+                        "status": "QUALIFIED",
+                        "fshd_lseg": "DATA_ONLY",
+                    },
+                    "iso9660": {
+                        "base": {"status": "QUALIFIED"},
+                        "rock_ridge": {"status": "PARTIAL"},
+                        "joliet": {"status": "PARTIAL"},
+                        "path_tables": {"status": "DEFERRED"},
+                    },
+                    "lha": {"-lh0-": {"status": "QUALIFIED"}},
+                    "dms": {"status": "DEFERRED"},
+                    "atari_st": {"status": "DEFERRED"},
+                    "msa": {"status": "DEFERRED"},
+                    "apple_dos": {"status": "DEFERRED"},
+                    "prodos": {"status": "DEFERRED"},
+                    "hfs": {"status": "DEFERRED", "resource_forks_validated": False},
+                },
+                "limits": {
+                    "maximum_bytes": getattr(
+                        self.scans.generic_analyzers.get("structural-validator"),
+                        "max_bytes",
+                        None,
+                    ),
+                    "maximum_nodes": getattr(
+                        self.scans.generic_analyzers.get("structural-validator"),
+                        "max_nodes",
+                        None,
+                    ),
+                },
+            },
             "executable_analysis": {
                 "analyzer": "executable",
                 "execution": False,
@@ -584,6 +634,11 @@ class RABService:
                     "profile": record["profile"],
                 }
             ),
+            structural_validation=[
+                item.structural_validation
+                for item in analyzers
+                if item.structural_validation is not None
+            ],
             errors=job.errors,
             provenance={
                 "requested_by": record["client_id"],

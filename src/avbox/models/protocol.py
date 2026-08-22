@@ -17,6 +17,7 @@ from .analysis import (
     ObjectRelationship,
     Observation,
     PreservationContext,
+    StructuralValidation,
 )
 from .common import Verdict
 from .jobs import JobStatus
@@ -107,6 +108,7 @@ class AnalysisResultEnvelope(BaseModel):
     assessments: list[Assessment] = Field(default_factory=list)
     verdict: Verdict | None = None
     preservation_context: PreservationContext = Field(default_factory=PreservationContext)
+    structural_validation: list[StructuralValidation] = Field(default_factory=list)
     relationships: list[ObjectRelationship] = Field(default_factory=list)
     derived_objects: list[DerivedObject] = Field(default_factory=list)
     completeness: str = "COMPLETE"

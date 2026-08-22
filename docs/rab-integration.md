@@ -17,3 +17,9 @@ partition names and offsets are metadata, not identity.
 `ExternalPreservationManifest` is the common boundary for bootstrap exports and future RAB catalogs. It carries four hashes, size, source URLs, independent product/engine/definition fields, compatibility, relationships, provenance, failures and rights. AVBox does not copy an external catalog into its registry or require bootstrap online.
 
 Bootstrap exports remain external holdings. `examples/external-preservation-manifest.json` demonstrates the format without importing them.
+# Preservation validation profile
+
+RAB clients select `preservation-validation@1` for identity, type, metadata,
+structural validation and bounded recursive discovery without requiring malware
+scanners. RAB remains the preservation authority; AVBox neither recommends
+discarding damaged media nor modifies it.

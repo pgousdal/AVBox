@@ -26,3 +26,8 @@
 
 Safety and preservation evidence may justify splitting or reordering milestones.
 M1.7 has not started.
+# M1.7 — Retro / Media Structural Validation
+
+Qualified on the dedicated Debian 13 VM. Mandatory validators cover ADF
+OFS/FFS, FAT12/16/32, RDB/HDF, ISO9660 base and LHA `-lh0-`. Optional formats
+remain explicitly deferred.

@@ -102,6 +102,7 @@ def test_protocol_models_keep_semantic_layers_separate() -> None:
         "assessments",
         "verdict",
         "preservation_context",
+        "structural_validation",
     } <= set(properties)
     assert Observation(observation_type="size", value=1, analyzer_id="identity").value == 1
 
@@ -178,6 +179,22 @@ def test_unknown_profile_and_no_system_detectors(tmp_path: Path) -> None:
     assert unsupported.value.code == ErrorCode.UNSUPPORTED_PROFILE
 
 
+def test_preservation_validation_profile_is_versioned_and_security_optional(tmp_path: Path) -> None:
+    service, _ = protocol_service(tmp_path)
+    profile = next(
+        item for item in service.profiles() if item.qualified_id == "preservation-validation@1"
+    )
+    assert profile.analyzers == [
+        "identity",
+        "basic-metadata",
+        "file-type",
+        "structural-validator",
+        "container",
+    ]
+    assert "clamav" not in profile.analyzers
+    assert "yara" not in profile.analyzers
+
+
 def test_unqualified_profile_analyzer_is_rejected(tmp_path: Path) -> None:
     service, jobs = protocol_service(tmp_path)
     jobs.save_scanner_status(
@@ -251,6 +268,11 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     }
     assert partitioned["amiga_rdb"]["status"] == "QUALIFIED"
     assert partitioned["gpt"]["status"] == "DEFERRED"
+    validation = capabilities["structural_validation"]
+    assert validation["security_verdict_emitted"] is False
+    assert validation["formats"]["adf"]["ofs"]["status"] == "QUALIFIED"
+    assert validation["formats"]["lha"]["-lh0-"]["status"] == "QUALIFIED"
+    assert validation["formats"]["dms"]["status"] == "DEFERRED"
     executable = capabilities["executable_analysis"]
     assert executable["execution"] is False
     assert executable["formats"]["pe32"]["status"] == "QUALIFIED"
@@ -269,12 +291,8 @@ def test_capabilities_are_honest(tmp_path: Path) -> None:
     assert documents["formats"]["rtf"]["status"] == "QUALIFIED"
     assert documents["formats"]["odf"]["status"] == "QUALIFIED"
     assert documents["formats"]["odf_odt"]["status"] == "QUALIFIED"
-    assert (
-        documents["formats"]["odf_ods"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
-    )
-    assert (
-        documents["formats"]["odf_odp"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
-    )
+    assert documents["formats"]["odf_ods"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
+    assert documents["formats"]["odf_odp"]["status"] == "IMPLEMENTED_NOT_QUALIFIED"
 
 
 def test_http_contract_auth_errors_and_openapi(tmp_path: Path) -> None:

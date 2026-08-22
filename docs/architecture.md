@@ -33,3 +33,10 @@ M1.3 adds bounded strings, whole-object byte statistics, isolated bounded
 ExifTool metadata, and optional ssdeep similarity fingerprints. These analyzers
 remain outer-object-only and produce observations/assessments, never security
 verdicts. Similarity fingerprints never replace SHA-256 identity or CAS keys.
+# Structural validation layer
+
+The `structural-validator` is a generic analyzer class distinct from antivirus
+engines and container enumeration. It attaches format-aware integrity facts and
+assessments to an existing SHA-256 object identity. Exact derived objects remain
+the responsibility of container transforms; blocks, tables and descriptors do
+not become child objects.

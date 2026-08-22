@@ -120,3 +120,9 @@ The qualified formats are ZIP, tar, gzip, bzip2, and xz. Extraction is
 userspace-only and globally bounded. Safety-limit, encrypted, corrupt, and
 unsupported outcomes are explicit partial states and never become malware
 verdicts. AVBox does not write derived objects to RAB automatically.
+# M1.7 structural validation
+
+Protocol v1 retains byte identity, format recognition, structural integrity and
+security verdict as separate concepts. Analyzer results may contain a
+`structural_validation` object and result envelopes collect root validation in a
+same-named array. This is additive and does not require Protocol v2.

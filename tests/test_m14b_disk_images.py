@@ -153,6 +153,17 @@ def _checksum(block: bytearray) -> None:
     struct.pack_into(">I", block, 20, (-sum(values)) & 0xFFFFFFFF)
 
 
+def _boot_checksum(image: bytearray) -> None:
+    struct.pack_into(">I", image, 4, 0)
+    total = 0
+    for value in struct.unpack(">256I", image[:1024]):
+        previous = total
+        total = (total + value) & 0xFFFFFFFF
+        if total < previous:
+            total = (total + 1) & 0xFFFFFFFF
+    struct.pack_into(">I", image, 4, (~total) & 0xFFFFFFFF)
+
+
 def _adf_hash(name: str) -> int:
     value = len(name)
     for char in name.upper().encode("latin-1"):
@@ -258,6 +269,11 @@ def make_adf(
     struct.pack_into(">I", root, 12, 72)
     root[432:441] = b"\x08AVBOX14B"
     struct.pack_into(">i", root, 508, 1)
+    bitmap_key = 879
+    bitmap = bytearray(512)
+    _checksum(bitmap)
+    image[bitmap_key * 512 : (bitmap_key + 1) * 512] = bitmap
+    struct.pack_into(">I", root, 316, bitmap_key)
     drawer_key = free_key
     free_key += 1
     drawer = put_header(drawer_key, "DRAWER", 2, root_key)
@@ -287,6 +303,7 @@ def make_adf(
         struct.pack_into(">I", root, 24 + bucket * 4, key)
     _checksum(root)
     image[root_key * 512 : (root_key + 1) * 512] = root
+    _boot_checksum(image)
     path.write_bytes(image)
     return entries
 
