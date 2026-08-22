@@ -218,8 +218,10 @@ def _parse_adf(data: bytes) -> DiskImage | None:
         return bool(sum(struct.unpack(">128I", value)) & 0xFFFFFFFF == 0)
 
     root = block(root_key)
-    if _be32(root, 0) != 2 or _signed_be32(root, 508) != 1 or not valid_checksum(root):
+    if _be32(root, 0) != 2 or _signed_be32(root, 508) != 1:
         return None
+    if not valid_checksum(root):
+        raise DiskImageError("invalid ADF root block checksum")
     dos_type = data[3]
     filesystem = "OFS" if dos_type == 0 else "FFS"
     entries: list[DiskEntry] = []

@@ -346,3 +346,13 @@ def test_disk_corruption_false_positive_and_global_budget(tmp_path: Path) -> Non
     assert len(limited.derived_objects) == 5
     assert limited.completeness == "PARTIAL_LIMIT"
     assert "TOTAL_CHILD_COUNT_LIMIT" in limited.extraction_usage.limit_events
+
+    adf = tmp_path / "damaged.adf"
+    make_adf(adf)
+    damaged_adf = bytearray(adf.read_bytes())
+    damaged_adf[880 * 512 + 24] ^= 1
+    adf.write_bytes(damaged_adf)
+    adf_job = run_container(tmp_path, adf)
+    assert adf_job.completeness == "PARTIAL_ERROR"
+    assert "CORRUPT_FILESYSTEM" in adf_job.extraction_usage.limit_events
+    assert adf_job.normalized_verdict.value == "NOT_SCANNED"
