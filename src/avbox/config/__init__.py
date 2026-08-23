@@ -1,3 +1,3 @@
-from .settings import AppSettings, RABProtocolSettings
+from .settings import AppSettings, RABCorrelationSettings, RABProtocolSettings
 
-__all__ = ["AppSettings", "RABProtocolSettings"]
+__all__ = ["AppSettings", "RABCorrelationSettings", "RABProtocolSettings"]

@@ -1,5 +1,10 @@
 # AVBox
 
+M1.8 adds opt-in, read-only RAB object correlation: exact SHA-256 identity,
+known occurrences, typed preservation context, and ssdeep candidates. Production
+RAB remains truthfully unavailable unless a trusted server endpoint is configured.
+See `docs/m18-rab-correlation.md` and `docs/rab-correlation-protocol-v1.md`.
+
 Milestone M1.7 adds read-only retro/media structural validation. See
 [`docs/m17-retro-media-validation.md`](docs/m17-retro-media-validation.md).
 

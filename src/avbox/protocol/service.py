@@ -32,7 +32,6 @@ from avbox.models import (
     JobStatus,
     ObjectIdentity,
     Observation,
-    PreservationContext,
     QualificationState,
     RawOutputDescriptor,
     Rights,
@@ -141,6 +140,7 @@ class RABService:
 
     def capabilities(self) -> dict[str, object]:
         recursive = getattr(self.scans, "recursive_analyzer", None)
+        correlation = self.scans.correlation_service
         installed = self.jobs.scanner_statuses()
         qualified = sorted(
             name
@@ -166,7 +166,19 @@ class RABService:
             "maximum_upload_bytes": self.settings.maximum_upload_bytes,
             "submission_modes": ["byte-upload", "external-reference-metadata-only"],
             "reference_resolution": "NOT_IMPLEMENTED",
-            "rab_correlation": "NOT_AVAILABLE",
+            "rab_correlation": {
+                "protocol": "RAB Correlation Protocol v1",
+                "exact_sha256": "QUALIFIED",
+                "occurrences": "QUALIFIED",
+                "ssdeep": "QUALIFIED",
+                "tlsh": "DEFERRED",
+                "production_rab_correlation": (
+                    "CONFIGURED"
+                    if correlation and correlation.provider.production
+                    else "NOT_AVAILABLE"
+                ),
+                "provider": (correlation.provider.provider_id if correlation else "production-rab"),
+            },
             "recursive_analysis": "QUALIFIED" if recursive is not None else "NOT_AVAILABLE",
             "container_analysis": {
                 "state": "QUALIFIED" if recursive is not None else "UNAVAILABLE",
@@ -540,7 +552,9 @@ class RABService:
                     actual_sha256,
                     profile_id,
                 )
-            return self.accepted(str(job.job_id))
+            # The acceptance response describes the successful queue transition,
+            # independent of whether a fast worker has already started the job.
+            return self.accepted(str(job.job_id)).model_copy(update={"state": JobStatus.QUEUED})
         except Exception:
             incoming.unlink(missing_ok=True)
             raise
@@ -627,11 +641,13 @@ class RABService:
             completeness=job.completeness,
             extraction_budget=job.extraction_budget,
             extraction_usage=job.extraction_usage,
-            preservation_context=PreservationContext(
-                provenance={
-                    "client_id": record["client_id"],
-                    "client_request_id": record["client_request_id"],
-                    "profile": record["profile"],
+            preservation_context=job.preservation_context.model_copy(
+                update={
+                    "provenance": {
+                        "client_id": record["client_id"],
+                        "client_request_id": record["client_request_id"],
+                        "profile": record["profile"],
+                    }
                 }
             ),
             structural_validation=[
@@ -649,6 +665,8 @@ class RABService:
         )
 
     def _analyzer_available(self, analyzer_id: str, runtime: Mapping[str, object]) -> bool:
+        if analyzer_id == "rab-correlation":
+            return self.scans.correlation_service is not None
         if analyzer_id == "container":
             return self.scans.recursive_analyzer is not None
         generic = self.scans.generic_analyzers.get(analyzer_id)

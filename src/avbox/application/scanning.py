@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from avbox.analyzers import GenericAnalyzer
 from avbox.models import (
@@ -58,6 +59,7 @@ class ScanService:
         self.quarantine = quarantine
         self.maximum_file_bytes = maximum_file_bytes
         self.recursive_analyzer: object | None = None
+        self.correlation_service: Any | None = None
 
     def scan_file(self, source: Path, requested: list[str]) -> ScanJob:
         if source.stat().st_size > self.maximum_file_bytes:
@@ -105,7 +107,7 @@ class ScanService:
         original = (artifact.byte_size, artifact.hashes.sha256)
         try:
             for name in requested:
-                if name == "container":
+                if name in {"container", "rab-correlation"}:
                     continue
                 generic = self.generic_analyzers.get(name)
                 if generic is not None:
@@ -119,9 +121,7 @@ class ScanService:
                         if generic_result.raw_output:
                             job.raw_output_refs.append(generic_result.raw_output.raw_output_id)
                         if generic_result.errors:
-                            job.errors.extend(
-                                f"{name}: {error}" for error in generic_result.errors
-                            )
+                            job.errors.extend(f"{name}: {error}" for error in generic_result.errors)
                             if name in {"executable", "document"} and not (
                                 name == "document"
                                 and generic_result.native_status.startswith("partial_")
@@ -140,8 +140,7 @@ class ScanService:
                                     or QualificationState.DEGRADED
                                 ),
                                 installed_version=(
-                                    generic_result.engine_version
-                                    or generic_result.product_version
+                                    generic_result.engine_version or generic_result.product_version
                                 ),
                                 definition_state=generic_result.definition_state,
                                 last_probe=datetime.now(UTC),
@@ -212,6 +211,8 @@ class ScanService:
                     result for child in job.derived_objects for result in child.scanner_results
                 ]
                 job.normalized_verdict = aggregate_verdict(job.scanner_results + child_results)
+            if "rab-correlation" in requested and self.correlation_service is not None:
+                self.correlation_service.process(job)
             if (source.stat().st_size, ArtifactService.hash_file(source).hashes.sha256) != original:
                 raise RuntimeError("READ_ONLY invariant violated: source changed during scan")
             if job.normalized_verdict in {Verdict.MALICIOUS, Verdict.SUSPICIOUS, Verdict.PUA}:

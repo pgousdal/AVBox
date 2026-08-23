@@ -102,6 +102,34 @@ class RABSettings(BaseModel):
     export_directory: Path
 
 
+class RABCorrelationSettings(BaseModel):
+    enabled: bool = False
+    endpoint: str | None = None
+    credential_file: Path | None = None
+    provider_id: str = "production-rab"
+    provider_version: str = "1"
+    connect_timeout_seconds: float = Field(gt=0, le=60, default=2.0)
+    request_timeout_seconds: float = Field(gt=0, le=300, default=10.0)
+    total_deadline_seconds: float = Field(gt=0, le=600, default=30.0)
+    maximum_response_bytes: int = Field(ge=1024, le=16 * 1024 * 1024, default=1024 * 1024)
+    max_exact_records: int = Field(ge=1, le=1000, default=20)
+    max_occurrences: int = Field(ge=1, le=10000, default=100)
+    max_similarity_candidates: int = Field(ge=1, le=1000, default=20)
+    max_provenance_records: int = Field(ge=1, le=1000, default=50)
+    max_metadata_string_length: int = Field(ge=32, le=65536, default=4096)
+    max_correlated_objects_per_job: int = Field(ge=1, le=100000, default=1000)
+    max_similarity_queries_per_job: int = Field(ge=0, le=100000, default=100)
+
+    @model_validator(mode="after")
+    def require_trusted_endpoint(self) -> RABCorrelationSettings:
+        if self.enabled:
+            if not self.endpoint or not self.endpoint.startswith(("https://", "http://127.0.0.1")):
+                raise ValueError("enabled RAB correlation requires configured HTTPS endpoint")
+            if self.credential_file is None:
+                raise ValueError("enabled RAB correlation requires credential_file")
+        return self
+
+
 class RABProtocolSettings(BaseModel):
     enabled: bool = False
     credential_file: Path
@@ -122,6 +150,7 @@ class AppSettings(BaseModel):
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     preservation: PreservationSettings = Field(default_factory=PreservationSettings)
     rab: RABSettings
+    rab_correlation: RABCorrelationSettings = Field(default_factory=RABCorrelationSettings)
     rab_protocol: RABProtocolSettings
 
     @classmethod

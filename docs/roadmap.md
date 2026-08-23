@@ -1,5 +1,9 @@
 # Roadmap
 
+- **M1.8:** similarity, correlation and RAB object intelligence (implemented and
+  qualified). Production RAB and TLSH integration remain deferred.
+- **Next after M1.8 acceptance:** M2 — Current Windows Worker.
+
 - **M0:** foundation.
 - **M1:** current Linux worker (implemented/qualified per `m1-acceptance.md`). These span antivirus, rule, IOC, malware and system/rootkit classes, not seven antivirus engines.
 - **M1.1:** RAB Protocol v1 and generic asynchronous analysis-job foundation.

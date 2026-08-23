@@ -25,6 +25,20 @@ from .common import (
     StructuralState,
     Verdict,
 )
+from .correlation import (
+    CorrelationErrorCode,
+    CorrelationResult,
+    CorrelationState,
+    ExactCorrelation,
+    ExactLookupState,
+    ExactMatch,
+    KnownOccurrence,
+    ProvenanceRecord,
+    RABObjectContext,
+    SimilarityCandidate,
+    SimilarityCorrelation,
+    StructuralHistoryRecord,
+)
 from .jobs import JobStatus, ScanJob, ScannerResult
 from .protocol import (
     PROTOCOL_VERSION,
@@ -77,4 +91,16 @@ __all__ = [
     "RawOutputDescriptor",
     "ScanPolicy",
     "Verdict",
+    "CorrelationErrorCode",
+    "CorrelationResult",
+    "CorrelationState",
+    "ExactCorrelation",
+    "ExactLookupState",
+    "ExactMatch",
+    "KnownOccurrence",
+    "ProvenanceRecord",
+    "RABObjectContext",
+    "SimilarityCandidate",
+    "SimilarityCorrelation",
+    "StructuralHistoryRecord",
 ]

@@ -36,7 +36,7 @@ def create_app(context: Context | None = None) -> FastAPI:
 
     @app.get("/health")
     async def health() -> dict[str, str]:
-        return {"status": "ok", "milestone": "M1.4b", "scanner_runtime": "enabled"}
+        return {"status": "ok", "milestone": "M1.8", "scanner_runtime": "enabled"}
 
     @app.get("/api/v1/platforms")
     async def platforms() -> list[dict[str, object]]:
@@ -101,6 +101,8 @@ def create_app(context: Context | None = None) -> FastAPI:
         )
         rab_enabled = bool(ctx.rab_protocol and ctx.rab_protocol.settings.enabled)
         rab_queued = ctx.rab_protocol.queue.qsize() if ctx.rab_protocol else 0
+        correlation_service = ctx.scans.correlation_service if ctx.scans else None
+        correlation_provider = correlation_service.provider if correlation_service else None
         adapters = list(ctx.adapters.items()) + list(ctx.system_adapters.items())
         persisted = ctx.jobs.scanner_statuses()
         scanner_rows = "".join(
@@ -126,14 +128,23 @@ def create_app(context: Context | None = None) -> FastAPI:
             if recursive is not None
             else "not available"
         )
-        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.5</title></head>
-<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.5 Executable Static Analysis</dd>
+        return f"""<!doctype html><html><head><meta charset=utf-8><title>AVBox M1.8</title></head>
+<body><h1>AVBox status</h1><dl><dt>Milestone</dt><dd>M1.8 RAB Correlation Intelligence</dd>
 <dt>Status</dt><dd>current Linux detector runtime</dd>
 <dt>Configured platforms</dt><dd>{platforms_count}</dd>
 <dt>Configured scanners</dt><dd>{scanners_count}</dd><dt>Job count</dt><dd>{jobs_count}</dd>
 <dt>Quarantine count</dt><dd>{quarantine_count}</dd></dl>
 <dl><dt>RAB Protocol v1 enabled</dt><dd>{rab_enabled}</dd>
 <dt>RAB queued jobs</dt><dd>{rab_queued}</dd></dl>
+<dl><dt>Production RAB correlation</dt>
+<dd>{
+            "configured"
+            if correlation_provider and correlation_provider.production
+            else "not available"
+        }</dd>
+<dt>Correlation provider</dt>
+<dd>{correlation_provider.provider_id if correlation_provider else "none"}</dd>
+<dt>Exact/occurrence/ssdeep</dt><dd>qualified</dd><dt>TLSH</dt><dd>deferred</dd></dl>
 <table><thead><tr><th>Detector</th><th>Class</th><th>Runtime state</th><th>Version</th></tr></thead>
 <tbody>{scanner_rows}</tbody></table>
 <h2>Generic analyzers</h2><table><thead><tr><th>Analyzer</th><th>Class</th>

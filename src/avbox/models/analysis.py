@@ -6,6 +6,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field
 
 from .common import Confidence, QualificationState, ScannerClass, StructuralState, Verdict
+from .correlation import CorrelationResult
 
 
 class Observation(BaseModel):
@@ -35,7 +36,8 @@ class Assessment(BaseModel):
 
 
 class PreservationContext(BaseModel):
-    rab_correlation: Literal["NOT_AVAILABLE"] = "NOT_AVAILABLE"
+    rab_correlation: Literal["NOT_AVAILABLE", "AVAILABLE"] = "NOT_AVAILABLE"
+    correlation: CorrelationResult | None = None
     recommendation: str | None = None
     provenance: dict[str, Any] = Field(default_factory=dict)
 
@@ -64,6 +66,9 @@ class ObjectRelationship(BaseModel):
     extracted_at: datetime | None = None
     depth: int = 0
     member_index: int | None = None
+    authority: Literal["AVBOX_ANALYSIS", "RAB", "USER_PROVIDED", "EXTERNAL_REFERENCE"] = (
+        "AVBOX_ANALYSIS"
+    )
 
 
 class ExtractionBudget(BaseModel):
@@ -151,3 +156,4 @@ class DerivedObject(BaseModel):
     normalized_verdict: Verdict = Verdict.NOT_SCANNED
     errors: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
+    preservation_context: PreservationContext = Field(default_factory=PreservationContext)

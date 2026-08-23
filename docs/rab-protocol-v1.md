@@ -1,5 +1,9 @@
 # RAB Protocol v1 wire contract
 
+This is RAB -> AVBox analysis submission. It is distinct from the read-only
+AVBox -> RAB contract in `rab-correlation-protocol-v1.md`. Protocol v1 stays
+backward compatible: M1.8 populates its reserved typed `preservation_context`.
+
 RAB Protocol v1 is AVBox's authenticated, asynchronous machine interface for analysis of digital objects. It is not a virus-scan-only API. The namespace is `/api/v1/rab`; the protocol value is `1`.
 
 ## Authentication and authorization

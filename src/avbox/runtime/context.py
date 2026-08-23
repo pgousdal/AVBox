@@ -8,6 +8,11 @@ from avbox.analyzers import GenericAnalyzer, build_generic_analyzers
 from avbox.analyzers.containers import ContainerAnalyzer
 from avbox.application import JobService, ScanService
 from avbox.config import AppSettings
+from avbox.correlation import (
+    CorrelationService,
+    HTTPRabCorrelationProvider,
+    UnavailableRabCorrelationProvider,
+)
 from avbox.preservation import PreservationService
 from avbox.protocol import RABService
 from avbox.registry import RegistryService
@@ -44,6 +49,17 @@ def build_context(config_path: Path | None = None) -> Context:
         maximum_file_bytes=settings.runtime.maximum_file_bytes,
     )
     scans.recursive_analyzer = ContainerAnalyzer(settings, scans)
+    correlation_provider = (
+        HTTPRabCorrelationProvider(settings.rab_correlation)
+        if settings.rab_correlation.enabled
+        else UnavailableRabCorrelationProvider()
+    )
+    scans.correlation_service = CorrelationService(
+        correlation_provider,
+        max_objects=settings.rab_correlation.max_correlated_objects_per_job,
+        max_similarity_queries=settings.rab_correlation.max_similarity_queries_per_job,
+        total_deadline_seconds=settings.rab_correlation.total_deadline_seconds,
+    )
     rab_protocol = RABService(
         settings=settings.rab_protocol,
         jobs=jobs,

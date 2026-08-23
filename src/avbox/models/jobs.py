@@ -12,6 +12,7 @@ from .analysis import (
     ExtractionBudget,
     ExtractionUsage,
     ObjectRelationship,
+    PreservationContext,
 )
 from .artifacts import InputArtifact
 from .common import FindingKind, HistoricalMode, QualificationState, ScanPolicy, Verdict
@@ -79,6 +80,7 @@ class ScanJob(BaseModel):
     normalized_verdict: Verdict = Verdict.NOT_SCANNED
     raw_output_refs: list[str] = Field(default_factory=list)
     preservation_decision: str | None = None
+    preservation_context: PreservationContext = Field(default_factory=PreservationContext)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     errors: list[str] = Field(default_factory=list)
     scan_policy: ScanPolicy = ScanPolicy.READ_ONLY

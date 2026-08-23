@@ -47,6 +47,13 @@ def parser() -> argparse.ArgumentParser:
     analyze = sub.add_parser("analyze")
     analyze.add_argument("file", type=Path)
     analyze.add_argument("--profile", default="identification-default@1")
+    correlate = sub.add_parser("correlate")
+    correlate.add_argument("file", type=Path)
+    rab_correlation = sub.add_parser("rab-correlation")
+    rab_correlation_sub = rab_correlation.add_subparsers(
+        dest="rab_correlation_command", required=True
+    )
+    rab_correlation_sub.add_parser("status")
     system_scan = sub.add_parser("system-scan")
     system_scan.add_argument("--scanner", action="append", dest="scanners")
     rab = sub.add_parser("rab")
@@ -88,6 +95,26 @@ def main(argv: list[str] | None = None) -> int:
         }
         print(json.dumps(checks, indent=2))
         return 0 if checks["blake3"] == "ok" else 1
+    if args.command == "rab-correlation":
+        service = context.scans.correlation_service if context.scans else None
+        provider = service.provider if service else None
+        print(
+            json.dumps(
+                {
+                    "protocol": "RAB Correlation Protocol v1",
+                    "provider": provider.provider_id if provider else None,
+                    "production_rab_correlation": (
+                        "CONFIGURED" if provider and provider.production else "NOT_AVAILABLE"
+                    ),
+                    "exact_sha256": "QUALIFIED",
+                    "occurrences": "QUALIFIED",
+                    "ssdeep": "QUALIFIED",
+                    "tlsh": "DEFERRED",
+                },
+                indent=2,
+            )
+        )
+        return 0
     if args.command == "registry":
         if args.registry_command == "validate":
             print("registry valid")
@@ -171,11 +198,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(json.dumps(result.__dict__, indent=2, default=str))
         return 0 if result.exit_code == 0 else 1
-    if args.command in {"scan", "analyze"}:
-        if args.command == "analyze":
+    if args.command in {"scan", "analyze", "correlate"}:
+        if args.command in {"analyze", "correlate"}:
             if context.rab_protocol is None:
                 raise RuntimeError("analysis profile service is unavailable")
-            profile = context.rab_protocol.profile_map.get(args.profile)
+            profile_id = "correlation-default@1" if args.command == "correlate" else args.profile
+            profile = context.rab_protocol.profile_map.get(profile_id)
             if profile is None:
                 print("unknown analysis profile", file=sys.stderr)
                 return 2
@@ -210,9 +238,7 @@ def _rab_client(args: Any) -> int:
         elif args.rab_command == "job":
             response = http.get(base + f"/analysis-jobs/{args.job_id}", headers=headers)
         elif args.rab_command == "results":
-            response = http.get(
-                base + f"/analysis-jobs/{args.job_id}/results", headers=headers
-            )
+            response = http.get(base + f"/analysis-jobs/{args.job_id}/results", headers=headers)
         else:
             request_id = args.client_request_id or str(uuid.uuid4())
             idempotency = args.idempotency_key or request_id

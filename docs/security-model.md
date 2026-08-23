@@ -1,5 +1,12 @@
 # Security model
 
+RAB correlation is an outbound read-only boundary. Its endpoint is trusted
+server configuration, never per-analysis input; redirects and returned URLs are
+not followed. Requests contain hashes/size and optional fingerprints, not bytes.
+Credentials live outside Git with restrictive permissions. Time, response
+bytes/counts and strings are bounded. RAB metadata is untrusted text, and
+similarity or historical security context cannot create an AVBox verdict.
+
 M1 treats submissions and scanner parsers as untrusted. The hard default is `ScanPolicy.READ_ONLY`. Adapters reject remediation arguments, scan a mode-0400 copy, and compare source size/SHA-256 before and after execution. Filenames are labels; SHA-256 is identity. Raw output is stored mode 0400 outside SQLite and is never interpreted as HTML.
 
 MBR and RDB processing uses bounded userspace reads only. Submitted images are

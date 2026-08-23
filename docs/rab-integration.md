@@ -1,5 +1,10 @@
 # RAB integration
 
+There are two versioned directions. RAB -> AVBox Protocol v1 submits bytes for
+analysis. AVBox -> RAB Correlation Protocol v1 sends only hashes/size and an
+optional ssdeep fingerprint for read-only intelligence. Correlation performs no
+preservation writeback or content retrieval.
+
 The implemented machine boundary is RAB Protocol v1; see `rab-protocol-v1.md`.
 
 RAB requests a versioned analysis profile and supplies bytes with an expected

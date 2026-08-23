@@ -1,5 +1,10 @@
 # Architecture
 
+M1.8 adds a transport-independent `RabCorrelationProvider` behind an optional
+correlation service. RAB facts live in typed preservation context and never
+overwrite AVBox observations, verdicts, structural validation, or relationships.
+Root and children are correlated in deterministic bounded order after discovery.
+
 AVBox has three boundaries: the **control plane** owns jobs, YAML registry validation, policy, normalization, CLI/API and status UI; the **scanner/runtime plane** is represented by replaceable `ScannerAdapter` contracts; and the **preservation/integration plane** owns content-addressed quarantine and external manifest/RAB envelopes.
 
 Business logic lives in application services shared by CLI and API. YAML is catalog truth. SQLite contains only mutable operational job state and may later migrate behind `JobService` without changing registry semantics.

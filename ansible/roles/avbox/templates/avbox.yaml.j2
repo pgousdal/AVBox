@@ -40,6 +40,15 @@ web: {enabled: true}
 logging: {level: INFO, json: true}
 preservation: {external_manifests_enabled: true, bootstrap_import_enabled: true}
 rab: {enabled: false, endpoint: null, export_directory: '{{ avbox_state_root }}/rab-export'}
+rab_correlation:
+  enabled: false
+  endpoint: null
+  credential_file: null
+  provider_id: production-rab
+  provider_version: '1'
+  max_correlated_objects_per_job: 1000
+  max_similarity_queries_per_job: 100
+  total_deadline_seconds: 30
 rab_protocol:
   enabled: {{ avbox_rab_protocol_enabled | bool | lower }}
   credential_file: {{ avbox_config_root }}/rab-clients.json

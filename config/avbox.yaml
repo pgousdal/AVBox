@@ -51,6 +51,23 @@ rab:
   enabled: false
   endpoint: null
   export_directory: /tmp/avbox-m0/rab-export
+rab_correlation:
+  enabled: false
+  endpoint: null
+  credential_file: null
+  provider_id: production-rab
+  provider_version: '1'
+  connect_timeout_seconds: 2
+  request_timeout_seconds: 10
+  total_deadline_seconds: 30
+  maximum_response_bytes: 1048576
+  max_exact_records: 20
+  max_occurrences: 100
+  max_similarity_candidates: 20
+  max_provenance_records: 50
+  max_metadata_string_length: 4096
+  max_correlated_objects_per_job: 1000
+  max_similarity_queries_per_job: 100
 rab_protocol:
   enabled: false
   credential_file: /tmp/avbox-m1/rab-clients.json

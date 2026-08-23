@@ -35,3 +35,8 @@ profiles:
     analyzers: [identity, basic-metadata, file-type, structural-validator, container]
     capabilities: [object_identity, file_type, basic_metadata, structural_validation, recursive_analysis]
     enabled: true
+  - id: correlation-default
+    version: 1
+    analyzers: [identity, basic-metadata, file-type, similarity, container, rab-correlation]
+    capabilities: [object_identity, similarity_fingerprint, recursive_analysis, rab_exact_correlation, rab_occurrence_correlation, rab_similarity_correlation]
+    enabled: true
