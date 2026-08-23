@@ -1,5 +1,10 @@
 # AVBox
 
+M2.0 establishes the disposable Windows 11 Enterprise Evaluation qualification
+VM prerequisite for a future current-Windows worker. It does not implement the
+worker protocol. See
+[`docs/m2-windows-worker-bootstrap.md`](docs/m2-windows-worker-bootstrap.md).
+
 M1.8 adds opt-in, read-only RAB object correlation: exact SHA-256 identity,
 known occurrences, typed preservation context, and ssdeep candidates. Production
 RAB remains truthfully unavailable unless a trusted server endpoint is configured.
